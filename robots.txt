@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Exclude system and sensitive directories
+Disallow: /api/
+Disallow: /config/
+Disallow: /vendor/
+Disallow: /PHPMailer/
+
+# Exclude sensitive development & log files
+Disallow: /composer.json
+Disallow: /composer.lock
+Disallow: /database.sql
+Disallow: /my.txt
+
+# Sitemap Location
+Sitemap: https://welzee.com/sitemap.xml

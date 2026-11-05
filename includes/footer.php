@@ -1,0 +1,109 @@
+<?php
+// includes/footer.php
+if (!isset($base_url)) {
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    if ($host === 'localhost' || $host === '127.0.0.1' || strpos($host, 'localhost:') === 0 || strpos($host, '127.0.0.1:') === 0) {
+        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+        $segments = array_values(array_filter(explode('/', trim($scriptDir, '/'))));
+        $folder = !empty($segments[0]) ? $segments[0] : '';
+        $base_path = $folder !== '' ? '/' . $folder . '/' : '/';
+        $base_url = "$protocol://$host$base_path";
+    } else {
+        $base_url = "$protocol://$host/";
+    }
+}
+?>
+    </main> <!-- End of main content area, flex-grow ensures this pushes footer down -->
+
+    <!-- Global Footer -->
+    <footer class="bg-secondary text-gray-300 pt-16 pb-8 mt-auto border-t-[6px] border-primary">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+                
+                <!-- Brand Info Column -->
+                <div class="col-span-1 lg:col-span-1">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-primary text-white flex justify-center items-center rounded-lg shadow-md">
+                            <i class="fa-solid fa-shirt text-lg"></i>
+                        </div>
+                        <span class="font-extrabold text-3xl tracking-tighter text-white leading-none">Welzee</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+                        Premium quality custom embroidery and printing directly onto high-end apparel. Personalize your teamwear, corporate clothing, or promotional items in Pakistan with stunning, durable results guaranteed to leave an impression.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition duration-300 shadow-sm"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition duration-300 shadow-sm"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition duration-300 shadow-sm"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition duration-300 shadow-sm"><i class="fa-brands fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Links Column -->
+                <div>
+                    <h4 class="text-white font-bold text-lg mb-6 relative inline-block after:content-[''] after:absolute after:w-1/2 after:h-1 after:bg-primary after:bottom-[-8px] after:left-0 rounded-full">Quick Links</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="<?php echo $base_url; ?>" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Home</a></li>
+                        <li><a href="<?php echo $base_url; ?>services" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Services</a></li>
+                        <li><a href="<?php echo $base_url; ?>custom_order" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Custom Order</a></li>
+                        <li><a href="<?php echo $base_url; ?>about" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> About Us</a></li>
+                        <li><a href="<?php echo $base_url; ?>contact" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Customer Service Column -->
+                <div>
+                    <h4 class="text-white font-bold text-lg mb-6 relative inline-block after:content-[''] after:absolute after:w-1/2 after:h-1 after:bg-primary after:bottom-[-8px] after:left-0 rounded-full">Support</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="<?php echo $base_url; ?>faq" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> FAQ</a></li>
+                        <li><a href="<?php echo $base_url; ?>shipping" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Shipping Information</a></li>
+                        <li><a href="<?php echo $base_url; ?>returns" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Return Policy</a></li>
+                        <li><a href="<?php echo $base_url; ?>privacy" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Privacy Policy</a></li>
+                        <li><a href="<?php echo $base_url; ?>terms" class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Terms & Conditions</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact & Payment Column -->
+                <div>
+                    <h4 class="text-white font-bold text-lg mb-6 relative inline-block after:content-[''] after:absolute after:w-1/2 after:h-1 after:bg-primary after:bottom-[-8px] after:left-0 rounded-full">Get In Touch</h4>
+                    <ul class="space-y-4 text-sm mb-6">
+                        <li class="flex items-start gap-4">
+                            <div class="mt-1 w-6 flex justify-center"><i class="fa-solid fa-location-dot text-primary text-lg"></i></div>
+                            <span class="text-gray-400">R106 Sheet 30 Block A, Saima Arabian Villas, Karachi, Pakistan</span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-6 flex justify-center"><i class="fa-solid fa-phone text-primary text-lg"></i></div>
+                            <span class="text-gray-400"><a href="tel:+923205993161" class="hover:text-primary transition">+92 320 5993161</a></span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <div class="w-6 flex justify-center"><i class="fa-solid fa-envelope text-primary text-lg"></i></div>
+                            <span class="text-gray-400"><a href="mailto:info@welzee.com" class="hover:text-primary transition">info@welzee.com</a></span>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-6">
+                        <h5 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3">Secure Payments</h5>
+                        <div class="flex gap-3 text-2xl text-gray-400">
+                            <i class="fa-brands fa-cc-visa hover:text-white transition cursor-pointer" title="Visa"></i>
+                            <i class="fa-brands fa-cc-mastercard hover:text-white transition cursor-pointer" title="Mastercard"></i>
+                            <i class="fa-brands fa-cc-paypal hover:text-white transition cursor-pointer" title="PayPal"></i>
+                            <i class="fa-brands fa-cc-amex hover:text-white transition cursor-pointer" title="American Express"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+                <p>&copy; <?php echo date('Y'); ?> Welzee Embroidery & Print. All rights reserved.</p>
+                <div class="mt-4 md:mt-0 flex gap-4">
+                    <a href="<?php echo $base_url; ?>privacy" class="hover:text-white transition">Privacy</a>
+                    <a href="<?php echo $base_url; ?>terms" class="hover:text-white transition">Terms</a>
+                    <a href="<?php echo $base_url; ?>sitemap.xml" class="hover:text-white transition">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

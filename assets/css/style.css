@@ -1,0 +1,27 @@
+/* assets/css/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Brand Theme Colors - Adjust these to change the entire site layout! */
+    --color-primary: #22c55e;        /* Main Green */
+    --color-primary-dark: #16a34a;   /* Darker Green for hovers */
+    --color-primary-light: #dcfce7;  /* Light Green for backgrounds */
+    
+    --color-secondary: #0f172a;      /* Dark Slate for headings, footer, and topbar */
+    --color-secondary-light: #1e293b; 
+    
+    --bg-body: #f8fafc;              /* Main page background */
+    --bg-white: #ffffff;
+}
+
+body {
+    background-color: var(--bg-body);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

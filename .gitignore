@@ -1,0 +1,13 @@
+# Composer Dependencies
+/vendor/
+
+# User uploads (keep directory structure)
+/uploads/designs/*
+!/uploads/designs/.gitkeep
+/uploads/logos/*
+!/uploads/logos/.gitkeep
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
