@@ -64,17 +64,27 @@ class ApiManager {
             // Send via Fetch API to save in database first
             const response = await fetch('api/submit_order.php', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': window.CSRF_TOKEN || ''
                 },
                 body: JSON.stringify(payload)
             });
 
-            if(!response.ok) {
-                throw new Error("HTTP Status " + response.status);
+            let result = null;
+            try {
+                result = await response.json();
+            } catch (parseError) {
+                result = null;
             }
 
-            const result = await response.json();
+            if (!response.ok && !(result && result.message)) {
+                throw new Error("HTTP Status " + response.status);
+            }
+            if (!result) {
+                throw new Error("Invalid server response");
+            }
 
             if (result.status === 'success') {
                 this.closeContactModal();

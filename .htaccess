@@ -1,21 +1,80 @@
-Options -MultiViews
+# ============================================================
+# Welzee - Apache / LiteSpeed (cPanel) configuration
+# Works on localhost (XAMPP, any sub-folder) and on https://welzee.com
+# No RewriteBase is used on purpose: rules below are folder-relative.
+# ============================================================
+
+Options -Indexes -MultiViews
+DirectoryIndex index.php index.html
+
+ErrorDocument 403 "Access denied."
+ErrorDocument 500 "The site is temporarily unavailable. Please try again shortly."
+
+<IfModule mod_rewrite.c>
 RewriteEngine On
 
-# Route for sitemap.xml to sitemap.php
+# ---- 1. HTTPS + canonical host (production only; skipped on localhost) ----
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+RewriteRule ^ https://welzee.com%{REQUEST_URI} [R=301,L]
+
+RewriteCond %{HTTP_HOST} ^www\.welzee\.com$ [NC]
+RewriteRule ^ https://welzee.com%{REQUEST_URI} [R=301,L]
+
+# ---- 2. Never serve hidden files (.git, .env, .htpasswd ...) - but keep /.well-known for AutoSSL ----
+RewriteRule (^|/)\.(?!well-known(/|$)) - [R=404,L]
+
+# ---- 3. Never serve private folders or dev/backup/secret files over HTTP ----
+RewriteRule ^(config|includes|PHPMailer|vendor|deploy|tools|deployment_output)(/|$) - [R=404,L]
+RewriteRule ^(composer\.(json|lock)|database\.sql|my\.txt)$ - [R=404,L]
+RewriteRule \.(sql|md|log|bak|old|orig|save|swp|dist|sample|ini|inc|sh|zip|tar|gz|7z|rar|env|yml|yaml|ps1)$ - [R=404,L]
+
+# ---- 4. Clean URLs ----
 RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
-# Prevent processing if file or directory already physically exists
+# Existing real files / folders are served as-is
 RewriteCond %{REQUEST_FILENAME} -d [OR]
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
-# Redirect external .php requests to extensionless url (optional, for SEO)
-RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s([^.]+)\.php [NC]
-RewriteRule ^ %1 [R=301,L]
-
-# Route for Dynamic Blog Post viewing
+# Blog
+RewriteRule ^blog/?$ blog.php [L]
 RewriteRule ^blog/([^/]+)/?$ post.php?slug=$1 [L,QSA]
 
-# Resolve extensionless URLs to .php files internally
+# /about -> about.php
 RewriteCond %{REQUEST_FILENAME}\.php -f
 RewriteRule ^(.*)$ $1.php [L]
+
+# Unknown page URL (no file extension) -> branded 404 page (sends a real 404 status)
+RewriteCond %{REQUEST_URI} !\.[A-Za-z0-9]{1,5}$
+RewriteRule ^ 404.php [L]
+</IfModule>
+
+# ---- Security headers ----
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # Enable ONLY after confirming HTTPS works for the whole site (then uncomment):
+    # Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>
+
+# ---- Compression ----
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# ---- Browser caching for static assets ----
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png  "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType video/mp4  "access plus 1 month"
+    ExpiresByType text/css   "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
+</IfModule>

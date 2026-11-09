@@ -1,11 +1,12 @@
 <?php
 // post.php - Dynamic handler for /blog/:slug
-if(session_status() === PHP_SESSION_NONE) session_start();
-require_once 'config/db.php';
+require_once __DIR__ . '/config/bootstrap.php';
+require_once __DIR__ . '/config/db.php';
 
-$slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
-if(empty($slug)) {
-    header("Location: blog");
+$slug = (isset($_GET['slug']) && is_string($_GET['slug'])) ? trim($_GET['slug']) : '';
+if (strlen($slug) > 255) { $slug = ''; }
+if($slug === '') {
+    require __DIR__ . '/404.php';
     exit;
 }
 
@@ -16,15 +17,14 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if($result->num_rows === 0) {
-    // Alternatively, show a 404
-    header("Location: blog");
+    require __DIR__ . '/404.php';   // real HTTP 404 instead of a soft redirect
     exit;
 }
 
 $post = $result->fetch_assoc();
 
 $extraHead = '<title>'.htmlspecialchars($post['title']).' | Welzee</title>';
-include 'includes/header.php';
+include __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Article Header -->
@@ -62,5 +62,5 @@ include 'includes/header.php';
 </div>
 
 <?php
-include 'includes/footer.php';
+include __DIR__ . '/includes/footer.php';
 ?>

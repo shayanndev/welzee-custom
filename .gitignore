@@ -1,4 +1,4 @@
-# Composer Dependencies
+# Composer dependencies (not used at runtime - PHPMailer/ is bundled)
 /vendor/
 
 # User uploads (keep directory structure)
@@ -7,8 +7,15 @@
 /uploads/logos/*
 !/uploads/logos/.gitkeep
 
-# Logs and OS files
+# Secrets / local configuration - NEVER commit
+/config/config.local.php
+/config/config.php
+.env
+*.pem
+welzee_private/
+
+# Build output, logs, OS files
+/deployment_output/
 *.log
 .DS_Store
 Thumbs.db
-

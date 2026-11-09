@@ -1,7 +1,7 @@
 <?php
 // privacy.php
 $extraHead = '<title>Privacy Policy | Welzee</title>';
-include 'includes/header.php';
+include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="bg-secondary text-white py-16 border-b-4 border-primary">
@@ -34,4 +34,4 @@ include 'includes/header.php';
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/includes/footer.php'; ?>

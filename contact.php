@@ -1,7 +1,7 @@
 <?php
 // contact.php
 $extraHead = '<title>Contact Us | Premium Embroidery & Printing</title>';
-include 'includes/header.php';
+include __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Page Header -->
@@ -43,7 +43,7 @@ include 'includes/header.php';
                     <div>
                         <h4 class="font-bold text-gray-900 text-lg mb-1">Give Us a Call</h4>
                         <p class="text-gray-600 mb-2">Mon - Fri, 8:00 AM - 6:00 PM PST</p>
-                        <a href="tel:+18001234567" class="text-primary font-bold hover:underline transition">+92 320 5993161</a>
+                        <a href="tel:+923205993161" class="text-primary font-bold hover:underline transition">+92 320 5993161</a>
                     </div>
                 </div>
                 
@@ -108,5 +108,5 @@ include 'includes/header.php';
 </div>
 
 <?php
-include 'includes/footer.php';
+include __DIR__ . '/includes/footer.php';
 ?>

@@ -1,17 +1,8 @@
 <?php
 // includes/footer.php
+require_once __DIR__ . '/../config/bootstrap.php';
 if (!isset($base_url)) {
-    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    if ($host === 'localhost' || $host === '127.0.0.1' || strpos($host, 'localhost:') === 0 || strpos($host, '127.0.0.1:') === 0) {
-        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-        $segments = array_values(array_filter(explode('/', trim($scriptDir, '/'))));
-        $folder = !empty($segments[0]) ? $segments[0] : '';
-        $base_path = $folder !== '' ? '/' . $folder . '/' : '/';
-        $base_url = "$protocol://$host$base_path";
-    } else {
-        $base_url = "$protocol://$host/";
-    }
+    $base_url = app_base_url();
 }
 ?>
     </main> <!-- End of main content area, flex-grow ensures this pushes footer down -->

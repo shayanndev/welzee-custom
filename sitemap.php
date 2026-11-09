@@ -2,21 +2,13 @@
 // sitemap.php
 // Dynamically generate XML sitemap for search engines
 
+require_once __DIR__ . '/config/bootstrap.php';
+
 // Set content-type as XML
 header("Content-Type: application/xml; charset=utf-8");
 
-// Detect environment and set the appropriate base URL
-$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'welzee.com';
-if ($host === 'localhost' || $host === '127.0.0.1') {
-    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
-    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-    $segments = array_values(array_filter(explode('/', trim($scriptDir, '/'))));
-    $folder = !empty($segments[0]) ? $segments[0] : '';
-    $base_path = $folder !== '' ? '/' . $folder . '/' : '/';
-    $base_url = "$protocol://$host$base_path";
-} else {
-    $base_url = "https://welzee.com/";
-}
+// Base URL: configured site_url in production, auto-detected sub-folder on localhost
+$base_url = app_base_url();
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
 ?>
@@ -54,38 +46,29 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
     // Attempt to fetch dynamic blog posts from database
     $blog_posts = [];
     try {
-        if (file_exists(__DIR__ . '/config/db.php')) {
-            // Temporarily suppress errors/exceptions to prevent corrupting the XML output
-            $old_error_reporting = error_reporting();
-            error_reporting(0);
-            
-            // Use output buffering to catch and discard any raw HTML comments printed by db.php
-            ob_start();
-            include_once __DIR__ . '/config/db.php';
-            ob_end_clean();
-            
-            if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
-                $stmt = $conn->prepare("SELECT slug, created_at FROM blog_posts ORDER BY created_at DESC");
-                if ($stmt) {
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                    if ($result) {
-                        $blog_posts = $result->fetch_all(MYSQLI_ASSOC);
-                    }
-                    $stmt->close();
-                }
+        // The sitemap must still render if the database is unavailable.
+        define('DB_OPTIONAL', true);
+        ob_start();
+        include_once __DIR__ . '/config/db.php';
+        ob_end_clean();
+
+        if (isset($conn) && $conn instanceof mysqli) {
+            $stmt = $conn->prepare("SELECT slug, created_at FROM blog_posts ORDER BY created_at DESC");
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result) {
+                $blog_posts = $result->fetch_all(MYSQLI_ASSOC);
             }
-            
-            error_reporting($old_error_reporting);
+            $stmt->close();
         }
-    } catch (Exception $e) {
-        // Fallback silently if database is down or not configured
+    } catch (Throwable $e) {
+        // Fall back silently (details are in the error log if DB failed)
     }
 
     // Output blog posts
     foreach ($blog_posts as $post) {
         $slug = $post['slug'];
-        $url = $base_url . 'blog/' . $slug;
+        $url = $base_url . 'blog/' . rawurlencode($slug);
         $lastmod = date('Y-m-d', strtotime($post['created_at']));
         
         echo '  <url>' . PHP_EOL;

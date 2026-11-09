@@ -1,6 +1,7 @@
 <?php
 // custom_order.php
-$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+require_once __DIR__ . '/config/bootstrap.php';
+$csrfToken = csrf_token(); // starts the secure session and issues the CSRF token for the order API
 
 $extraHead = '
     <title>Custom Embroidery Order | Premium Services</title>
@@ -16,7 +17,7 @@ $extraHead = '
         }
     </style>
 ';
-include 'includes/header.php';
+include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="max-w-full mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
@@ -67,7 +68,7 @@ include 'includes/header.php';
                 <div class="mb-8 border-b pb-6">
                     <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">1. Choose Product</h3>
                     <div class="grid grid-cols-4 lg:grid-cols-4 gap-3">
-                        <button onclick="canvasManager.setProduct('tshirt', 'assets/safaimages/products/tshirt.png')"
+                        <button onclick="canvasManager.setProduct('tshirt', 'assets/images/products/tshirt.png')"
                             class="product-btn border-2 border-brand-500 bg-brand-50 rounded-lg p-2.5 flex flex-col items-center gap-2 transition"
                             id="btn-prod-tshirt">
                             <i class="fa-solid fa-shirt text-xl text-brand-600 btn-icon"></i>
@@ -313,11 +314,12 @@ include 'includes/header.php';
     </div>
 
     <!-- Scripts -->
+    <script>window.CSRF_TOKEN = <?php echo json_encode($csrfToken); ?>;</script>
     <script src="assets/js/customizer.js"></script>
     <script src="assets/js/api.js"></script>
 
 </div> <!-- End customizer max-w container -->
 
 <?php
-include 'includes/footer.php';
+include __DIR__ . '/includes/footer.php';
 ?>

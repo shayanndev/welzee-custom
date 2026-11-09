@@ -1,32 +1,37 @@
 <?php
-if(session_status() === PHP_SESSION_NONE) session_start();
 // includes/header.php
-// Ensures the absolute path for assets and internal links is correctly mapped in any environment
-$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+// Shared head/navigation. Base URL, error handling, timezone etc. come from config/bootstrap.php
+require_once __DIR__ . '/../config/bootstrap.php';
+$base_url = app_base_url();
 
-if ($host === 'localhost' || $host === '127.0.0.1' || strpos($host, 'localhost:') === 0 || strpos($host, '127.0.0.1:') === 0) {
-    // Dynamic subfolder detection for local development (supports /welzee/, /eilotu/, /customshirtsgen/, or root)
-    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-    $segments = array_values(array_filter(explode('/', trim($scriptDir, '/'))));
-    $folder = !empty($segments[0]) ? $segments[0] : '';
-    $base_path = $folder !== '' ? '/' . $folder . '/' : '/';
-    $base_url = "$protocol://$host$base_path";
-} else {
-    // Live production domain (root-level)
-    $base_url = "$protocol://$host/";
-}
-
-// Clean up current page for active tab checking without .php
+// Active-tab helper (extensionless)
 $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 if ($currentPage == 'index') $currentPage = '';
+
+// Canonical URL (real pages only; never for error responses)
+$canonicalUrl = '';
+if (http_response_code() === 200) {
+    $__path = (string)parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $__basePath = (string)parse_url($base_url, PHP_URL_PATH);
+    if ($__basePath !== '' && strpos($__path, $__basePath) === 0) {
+        $__path = substr($__path, strlen($__basePath));
+    }
+    $__path = preg_replace('#(^|/)index(\.php)?$#', '$1', ltrim($__path, '/'));
+    $__path = preg_replace('#\.php$#', '', $__path);
+    $canonicalUrl = $base_url . $__path;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php if (!isset($extraHead) || stripos($extraHead, '<title') === false): ?>
     <title>Premium Embroidery & Printing Services | Welzee</title>
+    <?php endif; ?>
+    <?php if ($canonicalUrl !== ''): ?>
+    <link rel="canonical" href="<?php echo e($canonicalUrl); ?>">
+    <?php endif; ?>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->

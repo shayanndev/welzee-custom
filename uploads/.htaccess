@@ -1,0 +1,22 @@
+# Customer uploads: images only. No script execution, no listing, sandboxed rendering.
+Options -Indexes
+
+<IfModule mod_authz_core.c>
+    <FilesMatch "(?i)\.(php[0-9]?|phtml|phar|pl|py|cgi|sh|shtml|htaccess|htpasswd)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+    <FilesMatch "(?i)\.(php[0-9]?|phtml|phar|pl|py|cgi|sh|shtml|htaccess|htpasswd)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    # Neutralise any script embedded in an uploaded SVG
+    Header always set Content-Security-Policy "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox"
+    Header always set X-Robots-Tag "noindex, noarchive"
+</IfModule>
+

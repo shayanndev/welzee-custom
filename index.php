@@ -1,6 +1,6 @@
 <?php
 // index.php
-include 'includes/header.php';
+include __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Hero Section -->
@@ -272,5 +272,5 @@ include 'includes/header.php';
 </script>
 
 <?php
-include 'includes/footer.php';
+include __DIR__ . '/includes/footer.php';
 ?>

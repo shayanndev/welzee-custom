@@ -1,7 +1,7 @@
 <?php
 // services.php
 $extraHead = '<title>Our Services | Premium Embroidery & Printing</title>';
-include 'includes/header.php';
+include __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Page Header -->
@@ -163,5 +163,5 @@ include 'includes/header.php';
 </section>
 
 <?php
-include 'includes/footer.php';
+include __DIR__ . '/includes/footer.php';
 ?>

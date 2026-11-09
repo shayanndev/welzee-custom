@@ -1,15 +1,15 @@
 <?php
 // blog.php
-if(session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/config/bootstrap.php';
+require_once __DIR__ . '/config/db.php';
 $extraHead = '<title>Blog & News | Welzee Embroidery & Printing</title>';
-include 'includes/header.php';
-require_once 'config/db.php';
 
 // Fetch all posts ordered by date
 $stmt = $conn->prepare("SELECT slug, title, category, excerpt, image_url, created_at FROM blog_posts ORDER BY created_at DESC");
 $stmt->execute();
 $result = $stmt->get_result();
 $posts = $result->fetch_all(MYSQLI_ASSOC);
+include __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Page Header -->
@@ -59,5 +59,5 @@ $posts = $result->fetch_all(MYSQLI_ASSOC);
 </div>
 
 <?php
-include 'includes/footer.php';
+include __DIR__ . '/includes/footer.php';
 ?>
