@@ -5,7 +5,6 @@ include __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Page Header -->
-<div class="bg-secondary text-white py-20 relative overflow-hidden">
 <section class="bg-secondary text-white py-20 relative overflow-hidden">
     <!-- Decorative transparent pattern -->
     <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(#fff 2px, transparent 2px); background-size: 30px 30px;"></div>
@@ -57,78 +56,80 @@ include __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<!-- Main Content -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-    
-    <!-- Embroidery Section -->
-    <div class="flex flex-col lg:flex-row gap-16 items-center mb-24">
-        <div class="w-full lg:w-1/2 rounded-3xl overflow-hidden shadow-2xl relative group">
-            <img src="https://placehold.co/800x600/f8fafc/64748b?text=Embroidery+Machine" alt="Embroidery Service" class="w-full h-auto object-cover transform group-hover:scale-105 transition duration-700">
-            <div class="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-3xl"></div>
-        </div>
-        <div class="w-full lg:w-1/2">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-sm mb-6 uppercase tracking-widest border border-primary/20">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> Highest Quality
+<!-- Main Services Section -->
+<section class="bg-secondary text-white py-24 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        <!-- Embroidery Section -->
+        <div class="flex flex-col lg:flex-row gap-16 items-center mb-24">
+            <div class="w-full lg:w-1/2 rounded-3xl overflow-hidden shadow-2xl relative group bg-secondary-light">
+                <img src="<?php echo $base_url; ?>assets/images/service_embroidery.jpg" alt="Expert Embroidery Machine" class="w-full h-[420px] object-cover transform group-hover:scale-105 transition duration-700">
+                <div class="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-3xl"></div>
             </div>
-            <h2 class="text-3xl md:text-4xl font-extrabold text-secondary mb-6">Expert Embroidery</h2>
-            <p class="text-gray-600 mb-6 text-lg leading-relaxed">
-                Embroidery is the undisputed king of textile finishing. It offers an incredibly high-quality, three-dimensional look that exudes professionalism and durability. Perfect for corporate workwear, heavy jackets, caps, and premium polos.
-            </p>
-            <ul class="space-y-4 mb-8">
-                <li class="flex items-start gap-4">
-                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
-                    <span class="text-gray-700 font-medium">Extremely durable and wash-resistant up to 95°C</span>
-                </li>
-                <li class="flex items-start gap-4">
-                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
-                    <span class="text-gray-700 font-medium">Noble, slightly raised 3D feel</span>
-                </li>
-                <li class="flex items-start gap-4">
-                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
-                    <span class="text-gray-700 font-medium">Ideal for structured fabrics and heavier garments</span>
-                </li>
-            </ul>
-            <a href="custom_order" class="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-dark transition text-lg border-b-2 border-primary pb-1">
-                Design Embroidery <i class="fa-solid fa-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-    <!-- Printing Section -->
-    <div class="flex flex-col lg:flex-row-reverse gap-16 items-center">
-        <div class="w-full lg:w-1/2 rounded-3xl overflow-hidden shadow-2xl relative group">
-            <img src="https://placehold.co/800x600/f8fafc/64748b?text=Textile+Printing" alt="Printing Service" class="w-full h-auto object-cover transform group-hover:scale-105 transition duration-700">
-            <div class="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-3xl"></div>
-        </div>
-        <div class="w-full lg:w-1/2">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-sm mb-6 uppercase tracking-widest border border-primary/20">
-                <i class="fa-solid fa-print"></i> Most Versatile
+            <div class="w-full lg:w-1/2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-sm mb-6 uppercase tracking-widest border border-primary/20">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Highest Quality
+                </div>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Expert Embroidery</h2>
+                <p class="text-gray-300 mb-6 text-lg leading-relaxed">
+                    Embroidery is the undisputed king of textile finishing. It offers an incredibly high-quality, three-dimensional look that exudes professionalism and durability. Perfect for corporate workwear, heavy jackets, caps, and premium polos.
+                </p>
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-start gap-4">
+                        <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
+                        <span class="text-gray-200 font-medium">Extremely durable and wash-resistant up to 95°C</span>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
+                        <span class="text-gray-200 font-medium">Noble, slightly raised 3D feel</span>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
+                        <span class="text-gray-200 font-medium">Ideal for structured fabrics and heavier garments</span>
+                    </li>
+                </ul>
+                <a href="<?php echo $base_url; ?>custom_order" class="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-light transition text-lg border-b-2 border-primary pb-1">
+                    Design Embroidery <i class="fa-solid fa-arrow-right"></i>
+                </a>
             </div>
-            <h2 class="text-3xl md:text-4xl font-extrabold text-secondary mb-6">Flex & Digital Printing</h2>
-            <p class="text-gray-600 mb-6 text-lg leading-relaxed">
-                Textile printing is ideal for large, complex designs with many colors, gradients, or fine details that cannot be stitched. We utilize modern transfer and direct-to-garment (DTG) technologies to ensure vibrant, long-lasting colors.
-            </p>
-            <ul class="space-y-4 mb-8">
-                <li class="flex items-start gap-4">
-                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
-                    <span class="text-gray-700 font-medium">Perfect for large back designs & photorealistic images</span>
-                </li>
-                <li class="flex items-start gap-4">
-                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
-                    <span class="text-gray-700 font-medium">Lighter feel, ideal for thin summer T-Shirts</span>
-                </li>
-                <li class="flex items-start gap-4">
-                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
-                    <span class="text-gray-700 font-medium">Cost-effective for very large volumes</span>
-                </li>
-            </ul>
-            <a href="custom_order" class="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-dark transition text-lg border-b-2 border-primary pb-1">
-                Design Print <i class="fa-solid fa-arrow-right"></i>
-            </a>
         </div>
-    </div>
 
-</div>
+        <!-- Printing Section -->
+        <div class="flex flex-col lg:flex-row-reverse gap-16 items-center">
+            <div class="w-full lg:w-1/2 rounded-3xl overflow-hidden shadow-2xl relative group bg-secondary-light">
+                <img src="<?php echo $base_url; ?>assets/images/service_printing.jpg" alt="Direct to Garment Textile Printing" class="w-full h-[420px] object-cover transform group-hover:scale-105 transition duration-700">
+                <div class="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-3xl"></div>
+            </div>
+            <div class="w-full lg:w-1/2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-sm mb-6 uppercase tracking-widest border border-primary/20">
+                    <i class="fa-solid fa-print"></i> Most Versatile
+                </div>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Flex & Digital Printing</h2>
+                <p class="text-gray-300 mb-6 text-lg leading-relaxed">
+                    Textile printing is ideal for large, complex designs with many colors, gradients, or fine details that cannot be stitched. We utilize modern transfer and direct-to-garment (DTG) technologies to ensure vibrant, long-lasting colors.
+                </p>
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-start gap-4">
+                        <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
+                        <span class="text-gray-200 font-medium">Perfect for large back designs & photorealistic images</span>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
+                        <span class="text-gray-200 font-medium">Lighter feel, ideal for thin summer T-Shirts</span>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
+                        <span class="text-gray-200 font-medium">Cost-effective for very large volumes</span>
+                    </li>
+                </ul>
+                <a href="<?php echo $base_url; ?>custom_order" class="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-light transition text-lg border-b-2 border-primary pb-1">
+                    Design Print <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</section>
 
 <!-- Process Section -->
 <section class="bg-gray-50 py-24 border-t border-gray-200">
