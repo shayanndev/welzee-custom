@@ -49,8 +49,8 @@ include __DIR__ . '/includes/header.php';
         </div>
         
         <div class="grid grid-cols-2 gap-4">
-            <img src="https://placehold.co/400x500/f8fafc/64748b?text=Workshop" class="rounded-2xl shadow-lg w-full h-full object-cover">
-            <img src="https://placehold.co/400x500/f1f5f9/64748b?text=Team" class="rounded-2xl shadow-lg w-full h-full object-cover mt-8">
+            <img src="<?php echo $base_url; ?>assets/images/about_workshop.jpg" alt="Welzee Workshop" class="rounded-2xl shadow-lg w-full h-[380px] sm:h-[450px] object-cover">
+            <img src="<?php echo $base_url; ?>assets/images/about_team.jpg" alt="Welzee Production Team" class="rounded-2xl shadow-lg w-full h-[380px] sm:h-[450px] object-cover mt-8">
         </div>
     </div>
 
