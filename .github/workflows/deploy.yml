@@ -1,0 +1,84 @@
+name: Deploy Welzee to Namecheap
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: welzee-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Prepare production files
+        run: |
+          mkdir -p .deploy-site
+          rsync -a \
+            --exclude='/.git/' \
+            --exclude='/.github/' \
+            --exclude='/.deploy-site/' \
+            --exclude='/deployment_output/' \
+            --exclude='/uploads/' \
+            --exclude='/private/' \
+            --exclude='/vendor/' \
+            --exclude='/node_modules/' \
+            --exclude='/tests/' \
+            --exclude='/config.php' \
+            --exclude='config.local.php' \
+            --exclude='.env*' \
+            --exclude='*.sql' \
+            --exclude='*.zip' \
+            --exclude='*.tar.gz' \
+            --exclude='*.log' \
+            --exclude='*.md' \
+            --exclude='/composer.json' \
+            --exclude='/composer.lock' \
+            ./ .deploy-site/
+
+          test -f .deploy-site/index.php
+          test -f .deploy-site/.htaccess
+          test -f .deploy-site/config/bootstrap.php
+          test -f .deploy-site/api/submit_order.php
+
+          find .deploy-site -type f -name '*.php' \
+            -print0 | xargs -0 -r -n1 php -l
+
+      - name: Deploy to Namecheap via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          security: strict
+          local-dir: ./.deploy-site/
+          server-dir: ./
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            uploads/**
+            **/uploads/**
+            **/config.local.php
+            **/.env*
+            **/*.sql
+            **/error_log
+          dangerous-clean-slate: false
+          dry-run: true
+          log-level: standard

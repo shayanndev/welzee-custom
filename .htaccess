@@ -10,6 +10,11 @@ DirectoryIndex index.php index.html
 ErrorDocument 403 "Access denied."
 ErrorDocument 500 "The site is temporarily unavailable. Please try again shortly."
 
+# Protect FTP deployment synchronization state file
+<Files ".ftp-deploy-sync-state.json">
+    Require all denied
+</Files>
+
 <IfModule mod_rewrite.c>
 RewriteEngine On
 
