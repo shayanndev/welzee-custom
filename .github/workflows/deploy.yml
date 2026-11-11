@@ -80,5 +80,6 @@ jobs:
             **/*.sql
             **/error_log
           dangerous-clean-slate: false
-          dry-run: true
+          dry-run: false
           log-level: standard
+
