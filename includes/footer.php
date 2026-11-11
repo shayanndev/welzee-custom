@@ -59,10 +59,6 @@ if (!isset($base_url)) {
                 <div>
                     <h4 class="text-white font-bold text-lg mb-6 relative inline-block after:content-[''] after:absolute after:w-1/2 after:h-1 after:bg-primary after:bottom-[-8px] after:left-0 rounded-full">Get In Touch</h4>
                     <ul class="space-y-4 text-sm mb-6">
-                        <li class="flex items-start gap-4">
-                            <div class="mt-1 w-6 flex justify-center"><i class="fa-solid fa-location-dot text-primary text-lg"></i></div>
-                            <span class="text-gray-400">R106 Sheet 30 Block A, Saima Arabian Villas, Karachi, Pakistan</span>
-                        </li>
                         <li class="flex items-center gap-4">
                             <div class="w-6 flex justify-center"><i class="fa-solid fa-phone text-primary text-lg"></i></div>
                             <span class="text-gray-400"><a href="tel:+923205993161" class="hover:text-primary transition">+92 320 5993161</a></span>
@@ -75,7 +71,23 @@ if (!isset($base_url)) {
                     
                     <div class="mt-6">
                         <h5 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3">Secure Payments</h5>
-                        <div class="flex gap-3 text-2xl text-gray-400">
+                        <div class="flex flex-wrap items-center gap-2.5 text-2xl text-gray-400">
+                            <!-- Easypaisa -->
+                            <span class="inline-flex items-center h-[26px] px-2 rounded bg-white text-[#00A852] font-bold text-[10px] shadow-sm hover:brightness-105 transition cursor-pointer" title="Easypaisa">
+                                <svg class="w-3.5 h-3.5 mr-1 shrink-0" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="10" fill="#00A852"/>
+                                    <path d="M12 7C9.24 7 7 9.24 7 12s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 7.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" fill="#ffffff"/>
+                                </svg>
+                                <span class="font-extrabold tracking-tight">easypaisa</span>
+                            </span>
+                            <!-- JazzCash -->
+                            <span class="inline-flex items-center h-[26px] px-2 rounded bg-white font-bold text-[10px] shadow-sm hover:brightness-105 transition cursor-pointer" title="JazzCash">
+                                <svg class="w-3.5 h-3.5 mr-1 shrink-0" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="10" fill="#E51B24"/>
+                                    <path d="M12 6c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6c0-1.8-.8-3.4-2.1-4.5l-1.5 1.5c.8.7 1.3 1.8 1.3 3 0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4v-2z" fill="#FFF"/>
+                                </svg>
+                                <span class="font-extrabold tracking-tight text-[#E51B24]">Jazz</span><span class="font-extrabold tracking-tight text-gray-900">Cash</span>
+                            </span>
                             <i class="fa-brands fa-cc-visa hover:text-white transition cursor-pointer" title="Visa"></i>
                             <i class="fa-brands fa-cc-mastercard hover:text-white transition cursor-pointer" title="Mastercard"></i>
                             <i class="fa-brands fa-cc-paypal hover:text-white transition cursor-pointer" title="PayPal"></i>
