@@ -1,18 +1,17 @@
 <?php
 // about.php
-$extraHead = '<title>About Us | Premium Embroidery & Printing</title>';
+$pageTitle = 'About Welzee | Professional Embroidery & Garment Printing';
+$pageDescription = 'Learn about Welzee\'s manufacturing workshop in Pakistan, our dedicated apparel crafting team, and our commitment to premium embroidery and printing quality.';
 include __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Page Header -->
 <div class="bg-secondary text-white py-24 relative overflow-hidden">
     <!-- Decorative transparent pattern -->
-    <div class="absolute inset-0 overflow-hidden">
-        <img src="https://placehold.co/1920x600/1e293b/0f172a?text=Our+History" alt="About Header Background" class="w-full h-full object-cover opacity-30 mix-blend-overlay">
-    </div>
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 2px, transparent 2px); background-size: 30px 30px;"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">Who We Are</h1>
-        <p class="text-xl text-gray-300 max-w-2xl mx-auto font-medium">Decades of experience woven into every single stitch.</p>
+        <p class="text-xl text-gray-300 max-w-2xl mx-auto font-medium">Precision textile craftsmanship woven into every stitch and print.</p>
     </div>
 </div>
 
@@ -22,35 +21,39 @@ include __DIR__ . '/includes/header.php';
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div>
             <span class="text-primary font-bold tracking-widest uppercase text-sm mb-2 block">Our Story</span>
-            <h2 class="text-3xl md:text-4xl font-extrabold text-secondary mb-6">Crafting Corporate Identity Since 1999.</h2>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-secondary mb-6">Crafting Corporate Identity with Precision.</h2>
             <div class="prose prose-lg text-gray-600">
                 <p class="mb-4">
-                    What started as a small, family-run workshop has grown into one of the region's leading providers of premium textile finishing. We understand that your corporate apparel is more than just clothing—it's the first impression your team makes.
+                    What started as a dedicated workshop has grown into a trusted provider of premium textile finishing. We understand that your corporate apparel is more than just clothing—it's the first impression your team makes.
                 </p>
                 <p class="mb-6">
-                    We invest heavily in the latest multi-head embroidery machines and sustainable printing technology. But the real secret to our quality is our people: trained punchers, meticulous machine operators, and dedicated customer support agents who ensure your logo looks perfect every single time.
+                    We invest heavily in high-performance multi-head embroidery machines and sustainable printing technology. But the real secret to our quality is our people: trained punchers, meticulous machine operators, and dedicated support specialists who ensure your logo looks sharp every single time.
                 </p>
             </div>
             
             <div class="grid grid-cols-2 gap-6 mt-10">
                 <div class="border-l-4 border-primary pl-4">
-                    <div class="text-3xl font-extrabold text-secondary">25+</div>
-                    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Years Experience</div>
+                    <div class="text-2xl font-extrabold text-secondary">Pakistan</div>
+                    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Production & Dispatch Origin</div>
                 </div>
                 <div class="border-l-4 border-primary pl-4">
-                    <div class="text-3xl font-extrabold text-secondary">10k+</div>
-                    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Happy B2B Clients</div>
+                    <div class="text-2xl font-extrabold text-secondary">B2B & Custom</div>
+                    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Corporate Uniforms & Blanks</div>
                 </div>
                 <div class="border-l-4 border-primary pl-4">
-                    <div class="text-3xl font-extrabold text-secondary">50k+</div>
-                    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Garments Finished</div>
+                    <div class="text-2xl font-extrabold text-secondary">PK & USA</div>
+                    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Serving Domestic & US Clients</div>
+                </div>
+                <div class="border-l-4 border-primary pl-4">
+                    <div class="text-2xl font-extrabold text-secondary">Quality First</div>
+                    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Visual Inspection Before Dispatch</div>
                 </div>
             </div>
         </div>
         
         <div class="grid grid-cols-2 gap-4">
-            <img src="<?php echo $base_url; ?>assets/images/about_workshop.jpg" alt="Welzee Workshop" class="rounded-2xl shadow-lg w-full h-[380px] sm:h-[450px] object-cover">
-            <img src="<?php echo $base_url; ?>assets/images/about_team.jpg" alt="Welzee Production Team" class="rounded-2xl shadow-lg w-full h-[380px] sm:h-[450px] object-cover mt-8">
+            <img src="<?php echo $base_url; ?>assets/images/about_workshop.jpg" alt="Industrial Embroidery & Textile Finishing Process" class="rounded-2xl shadow-lg w-full h-[380px] sm:h-[450px] object-cover">
+            <img src="<?php echo $base_url; ?>assets/images/about_team.jpg" alt="Apparel Quality Inspection & Finishing" class="rounded-2xl shadow-lg w-full h-[380px] sm:h-[450px] object-cover mt-8">
         </div>
     </div>
 
@@ -78,25 +81,37 @@ include __DIR__ . '/includes/header.php';
             <p class="text-gray-500 max-w-2xl mx-auto">The industry veterans ensuring every thread and drop of ink is absolutely perfect.</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div class="text-center">
-                <img src="https://placehold.co/300x300/f1f5f9/64748b?text=Director" class="w-48 h-48 rounded-full mx-auto mb-6 object-cover shadow-lg border-4 border-white transform hover:scale-105 transition">
-                <h3 class="text-xl font-bold text-secondary">Ahmad R.</h3>
-                <p class="text-primary font-medium text-sm">Managing Director</p>
+            <div class="text-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="w-24 h-24 rounded-full bg-primary/10 text-primary border-2 border-primary/20 mx-auto mb-4 flex items-center justify-center text-2xl font-extrabold shadow-inner">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <h3 class="text-lg font-bold text-secondary">Ahmad R.</h3>
+                <p class="text-primary font-semibold text-xs uppercase tracking-wider mt-1">Managing Director</p>
+                <p class="text-xs text-gray-500 mt-2">Production Strategy & Quality</p>
             </div>
-            <div class="text-center">
-                <img src="https://placehold.co/300x300/f1f5f9/64748b?text=Operations" class="w-48 h-48 rounded-full mx-auto mb-6 object-cover shadow-lg border-4 border-white transform hover:scale-105 transition">
-                <h3 class="text-xl font-bold text-secondary">Sara K.</h3>
-                <p class="text-primary font-medium text-sm">Head of Operations</p>
+            <div class="text-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="w-24 h-24 rounded-full bg-primary/10 text-primary border-2 border-primary/20 mx-auto mb-4 flex items-center justify-center text-2xl font-extrabold shadow-inner">
+                    <i class="fa-solid fa-gears"></i>
+                </div>
+                <h3 class="text-lg font-bold text-secondary">Sara K.</h3>
+                <p class="text-primary font-semibold text-xs uppercase tracking-wider mt-1">Head of Operations</p>
+                <p class="text-xs text-gray-500 mt-2">Fulfillment & Workflow</p>
             </div>
-            <div class="text-center">
-                <img src="https://placehold.co/300x300/f1f5f9/64748b?text=Digitizer" class="w-48 h-48 rounded-full mx-auto mb-6 object-cover shadow-lg border-4 border-white transform hover:scale-105 transition">
-                <h3 class="text-xl font-bold text-secondary">Usman M.</h3>
-                <p class="text-primary font-medium text-sm">Lead Digitizer</p>
+            <div class="text-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="w-24 h-24 rounded-full bg-primary/10 text-primary border-2 border-primary/20 mx-auto mb-4 flex items-center justify-center text-2xl font-extrabold shadow-inner">
+                    <i class="fa-solid fa-bezier-curve"></i>
+                </div>
+                <h3 class="text-lg font-bold text-secondary">Usman M.</h3>
+                <p class="text-primary font-semibold text-xs uppercase tracking-wider mt-1">Lead Digitizer</p>
+                <p class="text-xs text-gray-500 mt-2">Vector & Stitch Mapping</p>
             </div>
-            <div class="text-center">
-                <img src="https://placehold.co/300x300/f1f5f9/64748b?text=QA" class="w-48 h-48 rounded-full mx-auto mb-6 object-cover shadow-lg border-4 border-white transform hover:scale-105 transition">
-                <h3 class="text-xl font-bold text-secondary">Fatima A.</h3>
-                <p class="text-primary font-medium text-sm">Quality Assurance</p>
+            <div class="text-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="w-24 h-24 rounded-full bg-primary/10 text-primary border-2 border-primary/20 mx-auto mb-4 flex items-center justify-center text-2xl font-extrabold shadow-inner">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <h3 class="text-lg font-bold text-secondary">Fatima A.</h3>
+                <p class="text-primary font-semibold text-xs uppercase tracking-wider mt-1">Quality Assurance</p>
+                <p class="text-xs text-gray-500 mt-2">3-Point Inspection Control</p>
             </div>
         </div>
     </div>
@@ -127,8 +142,8 @@ include __DIR__ . '/includes/header.php';
                 <div class="shrink-0 w-24 pt-2 font-bold text-primary text-xl">Today</div>
                 <div class="sm:border-l-2 sm:border-transparent sm:pl-8 relative">
                     <div class="hidden sm:block absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-3 shadow-[0_0_0_4px_white]"></div>
-                    <h3 class="text-xl font-bold text-secondary mb-2">Nationwide Leader</h3>
-                    <p class="text-gray-600">Shipping hundreds of thousands of custom-finished apparel pieces annually across the country with a strict 3-point QA process.</p>
+                    <h3 class="text-xl font-bold text-secondary mb-2">Expanded Custom Fulfillment</h3>
+                    <p class="text-gray-600">Supplying customized uniforms, polos, and promotional apparel to corporate clients in Pakistan and fulfilling direct custom orders for customers in the United States.</p>
                 </div>
             </div>
         </div>

@@ -1,8 +1,10 @@
 <?php
 // 404.php - custom "page not found" (served with a real 404 status by .htaccess and post.php)
 http_response_code(404);
-header('X-Robots-Tag: noindex');
-$extraHead = '<title>Page Not Found | Welzee</title><meta name="robots" content="noindex">';
+header('X-Robots-Tag: noindex, nofollow');
+$pageTitle = 'Page Not Found | Welzee';
+$pageDescription = 'The page you are looking for does not exist on Welzee.';
+$extraHead = '<meta name="robots" content="noindex, nofollow">';
 include __DIR__ . '/includes/header.php';
 ?>
 

@@ -3,8 +3,10 @@
 require_once __DIR__ . '/config/bootstrap.php';
 $csrfToken = csrf_token(); // starts the secure session and issues the CSRF token for the order API
 
+$pageTitle = 'Design Your Own Custom Apparel Online | Welzee Customizer';
+$pageDescription = 'Use Welzee\'s interactive apparel customizer to design custom embroidered or printed T-shirts, polos, hoodies, and caps. Request a fast wholesale quote.';
+
 $extraHead = '
-    <title>Custom Embroidery Order | Premium Services</title>
     <!-- Fabric.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
@@ -231,9 +233,10 @@ include __DIR__ . '/includes/header.php';
                         <span id="totalQuantityDisplay">0</span>
                     </div>
                     <div class="mt-2 flex justify-between items-center text-lg font-bold text-gray-800">
-                        <span>Estimated Total:</span>
+                        <span>Indicative Estimate:</span>
                         <span id="totalPriceDisplay" class="text-primary">$0.00</span>
                     </div>
+                    <p class="text-[11px] text-gray-500 mt-2 leading-relaxed">* Indicative estimate for initial planning. Final custom quotation is confirmed based on stitch density, artwork specifications, garment blanks, and destination shipping.</p>
                 </div>
 
                 <!-- Submit Button -->

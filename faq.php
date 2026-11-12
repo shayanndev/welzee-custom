@@ -1,13 +1,14 @@
 <?php
 // faq.php
-$extraHead = '<title>Frequently Asked Questions | Welzee</title>';
+$pageTitle = 'Frequently Asked Questions | Custom Apparel | Welzee';
+$pageDescription = 'Find answers about Welzee\'s minimum order quantities, digitizing setup, manufacturing in Pakistan, shipping to the US, turnaround times, and payment methods.';
 include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="bg-secondary text-white py-16 border-b-4 border-primary">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4">Frequently Asked Questions</h1>
-        <p class="text-lg text-gray-400">Everything you need to know about our products and services.</p>
+        <p class="text-lg text-gray-400">Everything you need to know about our products, customization, and fulfillment.</p>
     </div>
 </div>
 
@@ -15,13 +16,23 @@ include __DIR__ . '/includes/header.php';
     <div class="space-y-6">
         
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
+            <h3 class="text-xl font-bold text-secondary mb-2">Where are Welzee orders manufactured and shipped from?</h3>
+            <p class="text-gray-600">All Welzee products are manufactured, customized, and dispatched directly from our production facility in Karachi, Pakistan. We serve clients nationwide across Pakistan and ship confirmed international orders to the United States and other destinations via tracked express couriers.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
+            <h3 class="text-xl font-bold text-secondary mb-2">How does shipping work for customers in the United States?</h3>
+            <p class="text-gray-600">For US clients, customized orders are crafted at our facility in Pakistan and dispatched via tracked international air couriers. Transit times and shipping costs vary depending on order volume and the destination address, and are confirmed with your customized quote. Applicable import duties, customs tariffs, clearance fees, or taxes assessed by destination customs authorities are the responsibility of the recipient.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
             <h3 class="text-xl font-bold text-secondary mb-2">What is the minimum order quantity (MOQ)?</h3>
-            <p class="text-gray-600">For most standard apparel items, we require a minimum order quantity of 10 pieces per design to ensure cost-efficiency during the setup phase of our multi-head embroidery machines.</p>
+            <p class="text-gray-600">For custom embroidery, our standard minimum order quantity is 10 pieces per design to cover machine setup and digitizing overhead. For direct-to-garment (DTG) printing, we accept smaller flexible runs. Contact us for bulk tiered discounts.</p>
         </div>
 
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
             <h3 class="text-xl font-bold text-secondary mb-2">How long does production take?</h3>
-            <p class="text-gray-600">Standard production completes in 7-10 working days after artwork approval and payment. We also offer expedited express options (3-5 days) for urgent corporate events.</p>
+            <p class="text-gray-600">Standard production takes 5 to 7 business days following digital proof approval and quotation confirmation. Expedited handling is available upon request for urgent events.</p>
         </div>
 
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
@@ -31,12 +42,12 @@ include __DIR__ . '/includes/header.php';
 
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
             <h3 class="text-xl font-bold text-secondary mb-2">Do you charge a setup or digitizing fee?</h3>
-            <p class="text-gray-600">We do not charge artificial setup fees! However, converting your logo into a stitch-file (digitizing) usually incurs a small, one-time flat rate depending on complexity. Once digitized, we keep the file on record for all your future re-orders.</p>
+            <p class="text-gray-600">Converting your logo into a machine-readable stitch file (digitizing) incurs a small, one-time flat fee depending on complexity. Once digitized, your embroidery file is archived permanently for future reorders with zero repeat fees.</p>
         </div>
 
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
-            <h3 class="text-xl font-bold text-secondary mb-2">What format should my logo be in?</h3>
-            <p class="text-gray-600">For the best results, we recommend high-resolution vector files (.AI, .EPS, .SVG) or high-quality raster images (.PNG, .JPG) at 300 DPI.</p>
+            <h3 class="text-xl font-bold text-secondary mb-2">What artwork format should I provide?</h3>
+            <p class="text-gray-600">Vector artwork (.AI, .EPS, .SVG, .PDF) is preferred for the sharpest reproduction. High-resolution raster files (.PNG, .JPG) at 300 DPI are also accepted.</p>
         </div>
 
     </div>

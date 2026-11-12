@@ -1,6 +1,45 @@
 <?php
 // services.php
-$extraHead = '<title>Our Services | Premium Embroidery & Printing</title>';
+$pageTitle = 'Custom Embroidery & Apparel Printing Services | Welzee';
+$pageDescription = 'Explore Welzee\'s professional textile finishing services: computerized multi-head embroidery, DTG digital printing, and custom uniform branding for Pakistan & USA.';
+
+$pageJsonLd = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Service',
+    'serviceType' => 'Custom Embroidery and Garment Printing',
+    'provider' => [
+        '@type' => 'Organization',
+        'name' => 'Welzee',
+        'url' => 'https://welzee.com'
+    ],
+    'areaServed' => [
+        ['@type' => 'Country', 'name' => 'Pakistan'],
+        ['@type' => 'Country', 'name' => 'United States']
+    ],
+    'hasOfferCatalog' => [
+        '@type' => 'OfferCatalog',
+        'name' => 'Custom Apparel Services',
+        'itemListElement' => [
+            [
+                '@type' => 'Offer',
+                'itemOffered' => [
+                    '@type' => 'Service',
+                    'name' => 'Custom Embroidery Services',
+                    'description' => 'Precision computerized embroidery on polos, jackets, caps, and workwear.'
+                ]
+            ],
+            [
+                '@type' => 'Offer',
+                'itemOffered' => [
+                    '@type' => 'Service',
+                    'name' => 'Direct to Garment (DTG) & Textile Printing',
+                    'description' => 'Full-color photorealistic textile printing on custom T-shirts and apparel.'
+                ]
+            ]
+        ]
+    ]
+];
+
 include __DIR__ . '/includes/header.php';
 ?>
 

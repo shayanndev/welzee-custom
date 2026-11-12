@@ -54,6 +54,7 @@ jobs:
           test -f .deploy-site/.htaccess
           test -f .deploy-site/config/bootstrap.php
           test -f .deploy-site/api/submit_order.php
+          test -f .deploy-site/410.php
 
           find .deploy-site -type f -name '*.php' \
             -print0 | xargs -0 -r -n1 php -l

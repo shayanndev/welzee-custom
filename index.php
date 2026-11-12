@@ -1,5 +1,7 @@
 <?php
 // index.php
+$pageTitle = 'Custom Embroidery & Printing Services | Welzee';
+$pageDescription = 'Welzee offers custom embroidery, garment printing, and personalized apparel for customers in Pakistan and the USA. Customize T-shirts, polos, hoodies, and caps.';
 include __DIR__ . '/includes/header.php';
 ?>
 
@@ -18,8 +20,7 @@ include __DIR__ . '/includes/header.php';
     </div>
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 flex flex-col items-center text-center">
         <span
-            class="inline-block py-1 px-3 rounded-full bg-primary/20 text-primary border border-primary/30 text-xs font-bold tracking-widest uppercase mb-6">Since
-            1999</span>
+            class="inline-block py-1.5 px-4 rounded-full bg-primary/20 text-primary border border-primary/30 text-xs font-bold tracking-widest uppercase mb-6">Expert Apparel Finishing</span>
         <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter mb-6 leading-tight">Premium
             Corporate <br><span
                 class="text-transparent bg-clip-text bg-gradient-to-r from-primary-light to-primary">Embroidery &
@@ -116,8 +117,8 @@ include __DIR__ . '/includes/header.php';
                     class="absolute bottom-0 left-0 p-6 w-full transform translate-y-2 group-hover:translate-y-0 transition duration-300">
                     <h3 class="text-white font-bold text-2xl mb-1 group-hover:text-primary transition">T-Shirts</h3>
                     <div class="flex justify-between items-center">
-                        <p class="text-gray-300 text-sm font-medium">From <span class="price-display"
-                                data-usd="12.50">$12.50</span> ea</p>
+                        <p class="text-gray-300 text-sm font-medium">Starting at <span class="price-display"
+                                data-usd="12.50" data-pkr="2500">$12.50</span> ea</p>
                         <i
                             class="fa-solid fa-arrow-right text-primary opacity-0 group-hover:opacity-100 transition duration-300 transform -translate-x-4 group-hover:translate-x-0"></i>
                     </div>
@@ -138,8 +139,8 @@ include __DIR__ . '/includes/header.php';
                     class="absolute bottom-0 left-0 p-6 w-full transform translate-y-2 group-hover:translate-y-0 transition duration-300">
                     <h3 class="text-white font-bold text-2xl mb-1 group-hover:text-primary transition">Polo Shirts</h3>
                     <div class="flex justify-between items-center">
-                        <p class="text-gray-300 text-sm font-medium">From <span class="price-display"
-                                data-usd="18.00">$18.00</span> ea</p>
+                        <p class="text-gray-300 text-sm font-medium">Starting at <span class="price-display"
+                                data-usd="18.00" data-pkr="3500">$18.00</span> ea</p>
                         <i
                             class="fa-solid fa-arrow-right text-primary opacity-0 group-hover:opacity-100 transition duration-300 transform -translate-x-4 group-hover:translate-x-0"></i>
                     </div>
@@ -160,8 +161,8 @@ include __DIR__ . '/includes/header.php';
                     class="absolute bottom-0 left-0 p-6 w-full transform translate-y-2 group-hover:translate-y-0 transition duration-300">
                     <h3 class="text-white font-bold text-2xl mb-1 group-hover:text-primary transition">Hoodies</h3>
                     <div class="flex justify-between items-center">
-                        <p class="text-gray-300 text-sm font-medium">From <span class="price-display"
-                                data-usd="28.50">$28.50</span> ea</p>
+                        <p class="text-gray-300 text-sm font-medium">Starting at <span class="price-display"
+                                data-usd="28.50" data-pkr="5500">$28.50</span> ea</p>
                         <i
                             class="fa-solid fa-arrow-right text-primary opacity-0 group-hover:opacity-100 transition duration-300 transform -translate-x-4 group-hover:translate-x-0"></i>
                     </div>
@@ -182,14 +183,15 @@ include __DIR__ . '/includes/header.php';
                     class="absolute bottom-0 left-0 p-6 w-full transform translate-y-2 group-hover:translate-y-0 transition duration-300">
                     <h3 class="text-white font-bold text-2xl mb-1 group-hover:text-primary transition">Caps & Hats</h3>
                     <div class="flex justify-between items-center">
-                        <p class="text-gray-300 text-sm font-medium">From <span class="price-display"
-                                data-usd="9.00">$9.00</span> ea</p>
+                        <p class="text-gray-300 text-sm font-medium">Starting at <span class="price-display"
+                                data-usd="9.00" data-pkr="1800">$9.00</span> ea</p>
                         <i
                             class="fa-solid fa-arrow-right text-primary opacity-0 group-hover:opacity-100 transition duration-300 transform -translate-x-4 group-hover:translate-x-0"></i>
                     </div>
                 </div>
             </a>
         </div>
+        <p class="text-xs text-gray-400 mt-6 text-center">Indicative starting prices for customized blanks. Final quotes depend on order volume, stitch density, and printing specifications.</p>
         <div class="mt-16 text-center">
             <a href="custom_order"
                 class="inline-flex items-center gap-2 text-secondary font-bold hover:text-primary transition group border-b-2 border-transparent hover:border-primary pb-1 text-lg">
@@ -325,13 +327,13 @@ include __DIR__ . '/includes/header.php';
 
     function updatePrices() {
         const store = window.Welzee || window.Eilotu;
-        if (!store || !store.currency) return;
+        const isPkr = store && store.currency === 'PKR';
 
         document.querySelectorAll('.price-display').forEach(el => {
             const usd = parseFloat(el.getAttribute('data-usd'));
-            if (store.currency === 'PKR') {
-                const pkr = Math.round(usd * store.exchangeRate);
-                el.innerText = '₨ ' + pkr.toLocaleString();
+            const pkr = parseInt(el.getAttribute('data-pkr'), 10) || Math.round(usd * 280);
+            if (isPkr) {
+                el.innerText = 'Rs. ' + pkr.toLocaleString();
             } else {
                 el.innerText = '$' + usd.toFixed(2);
             }

@@ -8,6 +8,8 @@ Options -Indexes -MultiViews
 DirectoryIndex index.php index.html
 
 ErrorDocument 403 "Access denied."
+ErrorDocument 404 /404.php
+ErrorDocument 410 /410.php
 ErrorDocument 500 "The site is temporarily unavailable. Please try again shortly."
 
 # Protect FTP deployment synchronization state file
@@ -35,23 +37,80 @@ RewriteRule ^(config|includes|PHPMailer|vendor|deploy|tools|deployment_output)(/
 RewriteRule ^(composer\.(json|lock)|database\.sql|my\.txt)$ - [R=404,L]
 RewriteRule \.(sql|md|log|bak|old|orig|save|swp|dist|sample|ini|inc|sh|zip|tar|gz|7z|rar|env|yml|yaml|ps1)$ - [R=404,L]
 
-# ---- 4. Clean URLs ----
+# ---- 4. 301 Redirects: Old WordPress URLs to Equivalent Modern Pages ----
+# On production, redirect with canonical full URL or root path
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^about-us/?$ https://welzee.com/about [R=301,L]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^contact-us/?$ https://welzee.com/contact [R=301,L]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^our-services/?$ https://welzee.com/services [R=301,L]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^custom-order/?$ https://welzee.com/custom_order [R=301,L]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^faqs?/?$ https://welzee.com/faq [R=301,L]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^(terms-and-conditions|terms-of-service)/?$ https://welzee.com/terms [R=301,L]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^privacy-policy/?$ https://welzee.com/privacy [R=301,L]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^(refund_returns|refund-policy|return-policy)/?$ https://welzee.com/returns [R=301,L]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^(shipping-policy|shipping-information)/?$ https://welzee.com/shipping [R=301,L]
+
+# On localhost / subfolder development, handle gracefully without filesystem path leak
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^about-us/?$ about.php [L]
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^contact-us/?$ contact.php [L]
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^our-services/?$ services.php [L]
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^custom-order/?$ custom_order.php [L]
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^faqs?/?$ faq.php [L]
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^(terms-and-conditions|terms-of-service)/?$ terms.php [L]
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^privacy-policy/?$ privacy.php [L]
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^(refund_returns|refund-policy|return-policy)/?$ returns.php [L]
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^(shipping-policy|shipping-information)/?$ shipping.php [L]
+
+# ---- 5. Sitemap & Static Asset Passthrough ----
 RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
-# Existing real files / folders are served as-is
+# Existing real files / folders (e.g., robots.txt, favicon.ico, google*.html, images, CSS, JS, uploads) served as-is
 RewriteCond %{REQUEST_FILENAME} -d [OR]
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
-# Blog
+# ---- 6. Active Dynamic & Extensionless PHP Routing ----
+# These rules take strict precedence over legacy 410 rules below.
+
+# Blog Clean URLs
 RewriteRule ^blog/?$ blog.php [L]
 RewriteRule ^blog/([^/]+)/?$ post.php?slug=$1 [L,QSA]
 
-# /about -> about.php
+# Future Dynamic Product & Shop Routes (uncomment/customize when dedicated product pages are added):
+# RewriteRule ^product/([^/]+)/?$ product.php?slug=$1 [L,QSA]
+# RewriteRule ^shop/?$ shop.php [L]
+
+# Extensionless PHP Routing (/about -> about.php, /services -> services.php, /shop -> shop.php if present)
 RewriteCond %{REQUEST_FILENAME}\.php -f
 RewriteRule ^(.*)$ $1.php [L]
 
-# Unknown page URL (no file extension) -> branded 404 page (sends a real 404 status)
+# ---- 7. Discontinued WordPress / WooCommerce Leather Store URLs (410 Gone) ----
+# Any requests not matched by physical files, dynamic routes, or extensionless PHP above fall through here.
+# Sends an HTTP 410 Gone response instructing search engines to permanently remove discontinued legacy URLs.
+RewriteRule ^wp-(admin|content|includes|json)(/.*)?$ 410.php [L]
+RewriteRule ^product-(category|tag)(/.*)?$ 410.php [L]
+RewriteRule ^(cart|checkout|checkout-2|my-account)(/.*)?$ 410.php [L]
+RewriteRule ^(leather-jacket|mens-leather|womens-leather)(/.*)?$ 410.php [L]
+RewriteRule ^(product|shop)(/.*)?$ 410.php [L]
+
+# ---- 8. Branded 404 for Unknown Non-File Requests ----
 RewriteCond %{REQUEST_URI} !\.[A-Za-z0-9]{1,5}$
 RewriteRule ^ 404.php [L]
 </IfModule>

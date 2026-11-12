@@ -1,6 +1,7 @@
 <?php
 // terms.php
-$extraHead = '<title>Terms & Conditions | Welzee</title>';
+$pageTitle = 'Terms & Conditions | Welzee';
+$pageDescription = 'Terms of service, quotation procedures, intellectual property rights, and production guidelines for custom apparel orders placed with Welzee.';
 include __DIR__ . '/includes/header.php';
 ?>
 

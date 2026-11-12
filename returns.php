@@ -1,40 +1,59 @@
 <?php
 // returns.php
-// $extraHead = '<title>Return Policy | Welzee</title>';
+$pageTitle = 'Return & Replacement Policy | Welzee Custom Apparel';
+$pageDescription = 'Our policy on custom embroidered and printed apparel. Learn about our defect replacement guarantee, quality inspection, and claim submission process.';
 include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="bg-secondary text-white py-16 border-b-4 border-primary">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4">Return Policy</h1>
-        <p class="text-lg text-gray-400">Our commitment to quality and your satisfaction.</p>
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4">Return & Replacement Policy</h1>
+        <p class="text-lg text-gray-300">Our quality commitment to domestic and international clients.</p>
     </div>
 </div>
 
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 prose prose-lg prose-indigo max-w-none">
-    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 space-y-8">
         
-        <div class="bg-primary/10 border border-primary/20 rounded-xl p-6 mb-8">
-            <h3 class="text-lg font-bold text-primary mb-2"><i class="fa-solid fa-circle-info"></i> Notice on Customized Apparel</h3>
-            <p class="text-gray-700 text-sm">Because our products are permanently branded with your specific corporate logo or custom design, <strong>we cannot accept returns or exchanges due to sizing issues, change of mind, or buyer's remorse.</strong> Please review sizing charts and digital proofs carefully before approving production.</p>
+        <div class="bg-primary/10 border-l-4 border-primary p-6 rounded-r-xl">
+            <h3 class="text-lg font-bold text-secondary mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-circle-info text-primary"></i> Policy on Customized Apparel
+            </h3>
+            <p class="text-gray-700 text-sm leading-relaxed">
+                Because our products are permanently customized with your proprietary branding, logo, or artwork, <strong>we cannot accept returns or exchanges for reasons of sizing discrepancies, buyer's remorse, or project cancellations once production is approved.</strong> We provide full digital proofs and dimension specs for your authorization prior to stitching or printing.
+            </p>
         </div>
 
-        <h2 class="text-2xl font-bold text-secondary mb-4 border-b pb-2">1. Defective or Incorrect Items</h2>
-        <p class="text-gray-600 text-sm mb-6">If you receive an item that has a manufacturing defect, physical damage, or an embroidery error that deviates from the approved digital proof, we will gladly replace it. You must report claims within <strong>7 days</strong> of delivery.</p>
+        <div class="border-b pb-6">
+            <h2 class="text-2xl font-bold text-secondary mb-3">1. Defective or Incorrect Items</h2>
+            <p class="text-gray-600 text-sm leading-relaxed">
+                If an order arrives with an evident manufacturing flaw, material defect, transit damage, or embroidery/print deviation that substantially differs from your signed-off digital proof, Welzee will replace the affected garments free of charge. Claims must be submitted within <strong>7 days of delivery</strong>.
+            </p>
+        </div>
 
-        <h2 class="text-2xl font-bold text-secondary mb-4 border-b pb-2">2. How to File a Claim</h2>
-        <ul class="text-gray-600 text-sm mb-6 list-disc pl-5 space-y-2">
-            <li>Email our support team at <a href="mailto:info@welzee.com" class="text-primary hover:underline">info@welzee.com</a>.</li>
-            <li>Include your Order Number in the subject line.</li>
-            <li>Attach clear, high-resolution photos of the defect or error.</li>
-            <li>Do not mail items back without an authorized RMA (Return Merchandise Authorization) number.</li>
-        </ul>
+        <div class="border-b pb-6">
+            <h2 class="text-2xl font-bold text-secondary mb-3">2. How to Submit a Claim (Domestic & USA)</h2>
+            <ul class="text-gray-600 text-sm list-disc pl-5 space-y-2 leading-relaxed">
+                <li>Email our support desk at <a href="mailto:info@welzee.com" class="text-primary hover:underline font-semibold">info@welzee.com</a> or WhatsApp us at +92 320 5993161.</li>
+                <li>State your Order or Enquiry Reference Number in the subject line.</li>
+                <li>Provide crisp, well-lit photos showing the defect, garment label, and the overall item.</li>
+                <li>For US and international clients, photo verification is used to evaluate claims so you do not need to ship items back across international borders.</li>
+            </ul>
+        </div>
 
-        <h2 class="text-2xl font-bold text-secondary mb-4 border-b pb-2">3. Resolution Process</h2>
-        <p class="text-gray-600 text-sm mb-6">Once we review the photographic evidence, we will quickly authorize a free reprint and dispatch it via expedited shipping. In rare cases where a reprint is not possible, we will issue a pro-rated refund for the affected garments.</p>
+        <div class="border-b pb-6">
+            <h2 class="text-2xl font-bold text-secondary mb-3">3. Claim Resolution Process</h2>
+            <p class="text-gray-600 text-sm leading-relaxed">
+                Upon verification of a manufacturing discrepancy, we will promptly schedule an expedited complimentary reprint and dispatch it via prioritized courier. If a replacement is impracticable due to event timing, we issue a pro-rated refund for the affected pieces.
+            </p>
+        </div>
 
-        <h2 class="text-2xl font-bold text-secondary mb-4 border-b pb-2">4. Blank Garment Returns</h2>
-        <p class="text-gray-600 text-sm mb-0">If you ordered uncustomized (blank) apparel, you may return the unworn, unwashed items in their original packaging within 14 days for a refund, minus a 15% restocking fee and return shipping costs.</p>
+        <div>
+            <h2 class="text-2xl font-bold text-secondary mb-3">4. Uncustomized Blank Garments</h2>
+            <p class="text-gray-600 text-sm leading-relaxed">
+                If you purchased blank, uncustomized apparel samples, items may be returned within 14 calendar days of delivery in their original, unwashed, and unworn condition. Return shipping costs and a standard 15% restocking fee apply.
+            </p>
+        </div>
         
     </div>
 </div>

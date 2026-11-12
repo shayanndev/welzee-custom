@@ -21,25 +21,112 @@ if (http_response_code() === 200) {
     $canonicalUrl = $base_url . $__path;
 }
 ?>
+<?php
+// Resolve title, description, and social metadata
+$defaultTitle = 'Custom Embroidery & Printing Services | Welzee';
+$defaultDescription = 'Welzee offers custom embroidery, garment printing, and personalized apparel for customers in Pakistan and the USA. Customize T-shirts, polos, hoodies, and caps.';
+$defaultOgImage = $base_url . 'assets/images/og-image.jpg';
+
+$resolvedTitle = $pageTitle ?? $defaultTitle;
+if (isset($extraHead) && preg_match('#<title>(.*?)</title>#i', $extraHead, $matches)) {
+    $resolvedTitle = $matches[1];
+}
+
+$resolvedDescription = $pageDescription ?? $defaultDescription;
+if (isset($extraHead) && preg_match('#<meta\s+name=["\']description["\']\s+content=["\'](.*?)["\']#i', $extraHead, $matches)) {
+    $resolvedDescription = $matches[1];
+}
+
+$resolvedOgType = $pageOgType ?? 'website';
+$resolvedOgImage = $pageOgImage ?? $defaultOgImage;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <?php if (!isset($extraHead) || stripos($extraHead, '<title') === false): ?>
-    <title>Premium Embroidery & Printing Services | Welzee</title>
-    <?php endif; ?>
+    <title><?php echo e($resolvedTitle); ?></title>
+    <meta name="description" content="<?php echo e($resolvedDescription); ?>">
     <?php if ($canonicalUrl !== ''): ?>
     <link rel="canonical" href="<?php echo e($canonicalUrl); ?>">
     <?php endif; ?>
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:site_name" content="Welzee">
+    <meta property="og:type" content="<?php echo e($resolvedOgType); ?>">
+    <meta property="og:title" content="<?php echo e($resolvedTitle); ?>">
+    <meta property="og:description" content="<?php echo e($resolvedDescription); ?>">
+    <?php if ($canonicalUrl !== ''): ?>
+    <meta property="og:url" content="<?php echo e($canonicalUrl); ?>">
+    <?php endif; ?>
+    <meta property="og:image" content="<?php echo e($resolvedOgImage); ?>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo e($resolvedTitle); ?>">
+    <meta name="twitter:description" content="<?php echo e($resolvedDescription); ?>">
+    <meta name="twitter:image" content="<?php echo e($resolvedOgImage); ?>">
+
+    <!-- Multi-size Favicons & Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="<?php echo $base_url; ?>favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo $base_url; ?>assets/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo $base_url; ?>assets/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo $base_url; ?>apple-touch-icon.png">
+
+    <!-- Schema.org JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://welzee.com/#organization",
+          "name": "Welzee",
+          "url": "https://welzee.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "@id": "https://welzee.com/#logo",
+            "url": "https://welzee.com/assets/images/favicon.png",
+            "caption": "Welzee"
+          },
+          "email": "info@welzee.com",
+          "telephone": "+92 320 5993161",
+          "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "PK"
+          },
+          "areaServed": [
+            { "@type": "Country", "name": "Pakistan" },
+            { "@type": "Country", "name": "United States" }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://welzee.com/#website",
+          "url": "https://welzee.com/",
+          "name": "Welzee",
+          "description": "Custom embroidery and garment printing in Pakistan and USA",
+          "publisher": { "@id": "https://welzee.com/#organization" },
+          "inLanguage": "en"
+        }
+      ]
+    }
+    </script>
+    <?php if (isset($pageJsonLd) && !empty($pageJsonLd)): ?>
+    <script type="application/ld+json">
+    <?php echo is_string($pageJsonLd) ? $pageJsonLd : json_encode($pageJsonLd, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT); ?>
+    </script>
+    <?php endif; ?>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Favicon Icon -->
-    <link rel="icon" href="<?php echo $base_url; ?>assets/images/favicon.png" type="image/png">
     
     <!-- Custom Theme CSS -->
     <link rel="stylesheet" href="<?php echo $base_url; ?>assets/css/style.css">
@@ -92,40 +179,49 @@ if (http_response_code() === 200) {
 
     <!-- Global Currency State & Locater -->
     <script>
-        // Set up the global scope Welzee store (with backward compatibility)
         window.Welzee = window.Welzee || {};
         window.Eilotu = window.Welzee; // Compatibility alias
         
-        async function initializeCurrency() {
-            let savedCurrency = localStorage.getItem('welzee_currency') || localStorage.getItem('eilotu_currency');
+        function initializeCurrency() {
+            // 1. Check explicit URL parameter (?currency=PKR or ?currency=USD) - essential for GMC landing pages
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryCur = (urlParams.get('currency') || urlParams.get('cur') || '').toUpperCase();
             
-            if (!savedCurrency) {
+            let selectedCurrency = null;
+            if (queryCur === 'PKR' || queryCur === 'USD') {
+                selectedCurrency = queryCur;
+                try { localStorage.setItem('welzee_currency', selectedCurrency); } catch(e){}
+            }
+            
+            // 2. Check saved user preference
+            if (!selectedCurrency) {
+                try { selectedCurrency = localStorage.getItem('welzee_currency'); } catch(e){}
+            }
+            
+            // 3. Fallback based on timezone (instant, offline, reliable)
+            if (!selectedCurrency || (selectedCurrency !== 'PKR' && selectedCurrency !== 'USD')) {
                 try {
-                    // Fetch location to define default currency.
-                    const response = await fetch('https://ipapi.co/json/');
-                    const data = await response.json();
-                    savedCurrency = (data.country_code === 'PK') ? 'PKR' : 'USD';
+                    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+                    selectedCurrency = (tz.includes('Karachi') || tz.includes('Pakistan')) ? 'PKR' : 'USD';
                 } catch (e) {
-                    // Fallback to PKR if API fails
-                    savedCurrency = 'PKR';
+                    selectedCurrency = 'PKR';
                 }
-                localStorage.setItem('welzee_currency', savedCurrency);
+                try { localStorage.setItem('welzee_currency', selectedCurrency); } catch(e){}
             }
             
             // Set global state
-            window.Welzee.currency = savedCurrency;
-            window.Welzee.exchangeRate = 280; // 1 USD = 280 PKR (adjustable)
+            window.Welzee.currency = selectedCurrency;
+            window.Welzee.exchangeRate = 280; // Configurable indicative rate: 1 USD ~ 280 PKR
             
-            // Update UI
+            // Update UI selector if present
             const selector = document.getElementById('currencySelector');
-            if (selector) selector.value = savedCurrency;
+            if (selector) selector.value = selectedCurrency;
 
-            // Trigger event indicating currency is ready for any listening components
             document.dispatchEvent(new Event('CurrencyReady'));
         }
 
         function changeCurrency(newCurrency) {
-            localStorage.setItem('welzee_currency', newCurrency);
+            try { localStorage.setItem('welzee_currency', newCurrency); } catch(e){}
             window.Welzee.currency = newCurrency;
             document.dispatchEvent(new Event('CurrencyChanged'));
         }
@@ -139,8 +235,8 @@ if (http_response_code() === 200) {
     <!-- Topbar (Contact / Info Strip) -->
     <div class="bg-secondary text-gray-300 text-xs py-2 px-4 sm:px-6 lg:px-8 flex justify-between items-center border-b border-white/10 z-50 relative">
         <div class="flex items-center gap-4">
-            <span class="hidden sm:inline-block"><i class="fa-solid fa-truck-fast text-primary mr-1"></i> Free Shipping worldwide</span>
-            <span class="inline-block sm:hidden"><i class="fa-solid fa-truck-fast text-primary"></i> Free Shipping</span>
+            <span class="hidden sm:inline-block"><i class="fa-solid fa-location-dot text-primary mr-1"></i> Dispatched from Pakistan • Nationwide & USA Delivery</span>
+            <span class="inline-block sm:hidden"><i class="fa-solid fa-location-dot text-primary mr-1"></i> Dispatched from Pakistan</span>
         </div>
         <div class="flex items-center gap-4 font-medium">
             <!-- Currency Switcher -->

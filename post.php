@@ -23,7 +23,36 @@ if($result->num_rows === 0) {
 
 $post = $result->fetch_assoc();
 
-$extraHead = '<title>'.htmlspecialchars($post['title']).' | Welzee</title>';
+$pageTitle = htmlspecialchars($post['title']) . ' | Welzee Blog';
+$pageDescription = htmlspecialchars($post['excerpt'] ?? mb_substr(strip_tags($post['content']), 0, 155));
+$pageOgType = 'article';
+$pageOgImage = !empty($post['image_url']) ? $post['image_url'] : ($base_url . 'assets/images/og-image.jpg');
+
+$pageJsonLd = [
+    '@context' => 'https://schema.org',
+    '@type' => 'BlogPosting',
+    'headline' => $post['title'],
+    'description' => $pageDescription,
+    'datePublished' => date('c', strtotime($post['created_at'])),
+    'dateModified' => date('c', strtotime($post['created_at'])),
+    'author' => [
+        '@type' => 'Organization',
+        'name' => 'Welzee'
+    ],
+    'publisher' => [
+        '@type' => 'Organization',
+        'name' => 'Welzee',
+        'logo' => [
+            '@type' => 'ImageObject',
+            'url' => $base_url . 'assets/images/favicon.png'
+        ]
+    ],
+    'mainEntityOfPage' => [
+        '@type' => 'WebPage',
+        '@id' => $base_url . 'blog/' . rawurlencode($slug)
+    ]
+];
+
 include __DIR__ . '/includes/header.php';
 ?>
 

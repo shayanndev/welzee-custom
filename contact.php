@@ -1,18 +1,17 @@
 <?php
 // contact.php
-$extraHead = '<title>Contact Us | Premium Embroidery & Printing</title>';
+$pageTitle = 'Contact Welzee | Get an Embroidery & Printing Quote';
+$pageDescription = 'Have questions or need a bulk apparel quotation? Contact Welzee via WhatsApp, phone, or email. We fulfill orders for businesses in Pakistan, the US, and worldwide.';
 include __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Page Header -->
 <div class="bg-secondary text-white py-20 relative overflow-hidden">
     <!-- Decorative background -->
-    <div class="absolute inset-0 overflow-hidden bg-secondary-light">
-        <img src="https://placehold.co/1920x400/1e293b/0f172a?text=Contact+Us" alt="Contact Header" class="w-full h-full object-cover opacity-20 mix-blend-overlay">
-    </div>
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 2px, transparent 2px); background-size: 30px 30px;"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Get In Touch</h1>
-        <p class="text-lg text-gray-400 max-w-2xl mx-auto">Have a question about a large corporate order, a specific finishing technique, or general support? We are here to help.</p>
+        <p class="text-lg text-gray-400 max-w-2xl mx-auto">Have a question about a corporate order, custom digitization, or international shipping? We are here to help.</p>
     </div>
 </div>
 
@@ -31,8 +30,8 @@ include __DIR__ . '/includes/header.php';
                         <i class="fa-solid fa-location-dot"></i>
                     </div>
                     <div>
-                        <h4 class="font-bold text-gray-900 text-lg mb-1">Our Headquarters</h4>
-                        <p class="text-gray-600">R106 Sheet 30 Block A, Saima Arabian Villas,<br> Karachi, Pakistan</p>
+                        <h4 class="font-bold text-gray-900 text-lg mb-1">Production & Fulfillment Facility</h4>
+                        <p class="text-gray-600">Karachi, Pakistan<br><span class="text-xs text-gray-400">Serving Pakistan, United States & International Destinations</span></p>
                     </div>
                 </div>
                 

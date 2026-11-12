@@ -126,7 +126,7 @@ class CanvasManager {
         const store = window.Welzee || window.Eilotu;
         if (store && store.currency === 'PKR') {
             const pkr = Math.round(usdAmount * store.exchangeRate);
-            return '₨ ' + pkr.toLocaleString();
+            return 'Rs. ' + pkr.toLocaleString();
         }
         return '$' + usdAmount.toFixed(2);
     }
@@ -361,7 +361,7 @@ class CanvasManager {
             const store = window.Welzee || window.Eilotu;
             if (store && store.currency === 'PKR') {
                 const pkr = Math.round(usdTotal * store.exchangeRate);
-                displayEl.innerText = '₨ ' + pkr.toLocaleString();
+                displayEl.innerText = 'Rs. ' + pkr.toLocaleString();
             } else {
                 displayEl.innerText = '$' + usdTotal.toFixed(2);
             }

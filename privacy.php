@@ -1,6 +1,7 @@
 <?php
 // privacy.php
-$extraHead = '<title>Privacy Policy | Welzee</title>';
+$pageTitle = 'Privacy Policy | Welzee';
+$pageDescription = 'Read how Welzee protects your personal information, design assets, and order details in accordance with standard international privacy practices.';
 include __DIR__ . '/includes/header.php';
 ?>
 

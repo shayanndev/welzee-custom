@@ -21,9 +21,12 @@ New-Item -ItemType Directory -Force -Path $stage, $privateOut | Out-Null
 
 # ---------- 1. whitelist of runtime files ----------
 $files = @('index.php','about.php','blog.php','contact.php','custom_order.php','faq.php','post.php','privacy.php',
-           'returns.php','services.php','shipping.php','sitemap.php','terms.php','404.php','500.php','robots.txt','.htaccess')
+           'returns.php','services.php','shipping.php','sitemap.php','terms.php','404.php','410.php','500.php','robots.txt','.htaccess','favicon.ico','apple-touch-icon.png')
 foreach ($f in $files) {
-    Copy-Item (Join-Path $root $f) (Join-Path $stage $f) -Force
+    $srcFile = Join-Path $root $f
+    if (Test-Path $srcFile) {
+        Copy-Item $srcFile (Join-Path $stage $f) -Force
+    }
 }
 function Copy-Tree($rel, $excludePattern) {
     $src = Join-Path $root $rel

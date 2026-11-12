@@ -2,7 +2,9 @@
 // blog.php
 require_once __DIR__ . '/config/bootstrap.php';
 require_once __DIR__ . '/config/db.php';
-$extraHead = '<title>Blog & News | Welzee Embroidery & Printing</title>';
+
+$pageTitle = 'Apparel & Embroidery Insights Blog | Welzee';
+$pageDescription = 'Read expert textile finishing articles, embroidery digitizing tips, DTG printing guides, and corporate uniform branding advice from the Welzee team.';
 
 // Fetch all posts ordered by date
 $stmt = $conn->prepare("SELECT slug, title, category, excerpt, image_url, created_at FROM blog_posts ORDER BY created_at DESC");
