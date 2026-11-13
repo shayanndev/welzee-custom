@@ -14,8 +14,9 @@
 *.pem
 welzee_private/
 
-# Build output, logs, OS files
+# Build output, logs, OS files, nonpublic drafts
 /deployment_output/
+/content_drafts/
 *.log
 .DS_Store
 Thumbs.db

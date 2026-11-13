@@ -33,7 +33,7 @@ RewriteRule ^ https://welzee.com%{REQUEST_URI} [R=301,L]
 RewriteRule (^|/)\.(?!well-known(/|$)) - [R=404,L]
 
 # ---- 3. Never serve private folders or dev/backup/secret files over HTTP ----
-RewriteRule ^(config|includes|PHPMailer|vendor|deploy|tools|deployment_output)(/|$) - [R=404,L]
+RewriteRule ^(config|includes|PHPMailer|vendor|deploy|tools|deployment_output|content_drafts)(/|$) - [R=404,L]
 RewriteRule ^(composer\.(json|lock)|database\.sql|my\.txt)$ - [R=404,L]
 RewriteRule \.(sql|md|log|bak|old|orig|save|swp|dist|sample|ini|inc|sh|zip|tar|gz|7z|rar|env|yml|yaml|ps1)$ - [R=404,L]
 

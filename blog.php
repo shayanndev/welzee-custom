@@ -32,11 +32,16 @@ include __DIR__ . '/includes/header.php';
             </div>
         <?php endif; ?>
 
-        <?php foreach($posts as $post): ?>
+        <?php foreach($posts as $post): 
+            $imgSrc = $post['image_url'];
+            if (!empty($imgSrc) && !preg_match('#^https?://#i', $imgSrc)) {
+                $imgSrc = $base_url . ltrim($imgSrc, '/');
+            }
+        ?>
         <article class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition duration-300 group flex flex-col">
             <div class="aspect-w-16 aspect-h-10 bg-gray-200 overflow-hidden relative">
                 <a href="<?php echo $base_url; ?>blog/<?php echo urlencode($post['slug']); ?>" class="absolute inset-0 z-10 w-full h-full"></a>
-                <img src="<?php echo htmlspecialchars($post['image_url']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                <img src="<?php echo htmlspecialchars($imgSrc); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
             </div>
             <div class="p-6 flex-grow flex flex-col">
                 <div class="flex items-center gap-4 text-xs font-semibold text-primary uppercase tracking-wider mb-3">

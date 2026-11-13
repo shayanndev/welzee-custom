@@ -9,16 +9,18 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 if ($currentPage == 'index') $currentPage = '';
 
 // Canonical URL (real pages only; never for error responses)
-$canonicalUrl = '';
-if (http_response_code() === 200) {
-    $__path = (string)parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-    $__basePath = (string)parse_url($base_url, PHP_URL_PATH);
-    if ($__basePath !== '' && strpos($__path, $__basePath) === 0) {
-        $__path = substr($__path, strlen($__basePath));
+if (!isset($canonicalUrl) || empty($canonicalUrl)) {
+    $canonicalUrl = '';
+    if (http_response_code() === 200) {
+        $__path = (string)parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $__basePath = (string)parse_url($base_url, PHP_URL_PATH);
+        if ($__basePath !== '' && strpos($__path, $__basePath) === 0) {
+            $__path = substr($__path, strlen($__basePath));
+        }
+        $__path = preg_replace('#(^|/)index(\.php)?$#', '$1', ltrim($__path, '/'));
+        $__path = preg_replace('#\.php$#', '', $__path);
+        $canonicalUrl = $base_url . $__path;
     }
-    $__path = preg_replace('#(^|/)index(\.php)?$#', '$1', ltrim($__path, '/'));
-    $__path = preg_replace('#\.php$#', '', $__path);
-    $canonicalUrl = $base_url . $__path;
 }
 ?>
 <?php

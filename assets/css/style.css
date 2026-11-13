@@ -25,3 +25,101 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+/* ============================================================
+   Editorial Blog & Article Styles (prose-content)
+   ============================================================ */
+.prose-content h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-secondary, #0f172a);
+    margin-top: 2.75rem;
+    margin-bottom: 1rem;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+}
+.prose-content h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-secondary, #0f172a);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.35;
+}
+.prose-content p {
+    margin-bottom: 1.25rem;
+    line-height: 1.8;
+    color: #374151;
+    font-size: 1.0625rem;
+}
+.prose-content ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-top: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: #374151;
+}
+.prose-content ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+    margin-top: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: #374151;
+}
+.prose-content li {
+    margin-bottom: 0.625rem;
+    line-height: 1.65;
+    font-size: 1.0625rem;
+}
+.prose-content a {
+    color: var(--color-primary-dark, #16a34a);
+    text-decoration: underline;
+    font-weight: 600;
+    text-underline-offset: 3px;
+    transition: color 0.2s ease;
+}
+.prose-content a:hover {
+    color: var(--color-primary, #22c55e);
+}
+.prose-content strong {
+    color: var(--color-secondary, #0f172a);
+    font-weight: 700;
+}
+
+/* Responsive Editorial Table */
+.prose-content table {
+    width: 100%;
+    min-width: 580px;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    text-align: left;
+}
+.prose-content th {
+    background-color: #f8fafc;
+    color: var(--color-secondary, #0f172a);
+    font-weight: 700;
+    padding: 1rem 1.25rem;
+    border-bottom: 2px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    letter-spacing: 0.01em;
+}
+.prose-content th:last-child {
+    border-right: none;
+}
+.prose-content td {
+    padding: 0.875rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #f8fafc;
+    color: #4b5563;
+    line-height: 1.55;
+    vertical-align: top;
+}
+.prose-content td:last-child {
+    border-right: none;
+}
+.prose-content tr:nth-child(even) td {
+    background-color: #fafbfc;
+}
+.prose-content tr:hover td {
+    background-color: #f1f5f9;
+}
