@@ -28,13 +28,25 @@ if ($result->num_rows === 0) {
 $post = $result->fetch_assoc();
 
 // SEO Title & Description mapping
-$pageTitle = ($slug === 'dtg-vs-screen-print')
-    ? 'DTG vs Screen Printing for Custom T-Shirts | Welzee'
-    : (htmlspecialchars($post['title']) . ' | Welzee Blog');
+$customTitles = [
+    'dtg-vs-screen-print' => 'DTG vs Screen Printing for Custom T-Shirts | Welzee',
+    'logo-digitization-art' => 'How to Prepare a Logo for Embroidery | Welzee'
+];
+$customDescriptions = [
+    'dtg-vs-screen-print' => 'Compare DTG and screen printing for custom T-shirts: artwork, fabric, order quantities, print feel, durability, cost factors, and how to choose.',
+    'logo-digitization-art' => 'Prepare your logo for embroidery with the right artwork, size, lettering and fabric details. Learn about digitizing, DST/PES files and approval checks.'
+];
+$customAlts = [
+    'dtg-vs-screen-print' => 'DTG printer and screen-printing press producing different designs on cotton T-shirts',
+    'logo-digitization-art' => 'Flat company logo artwork beside a close-up of the same logo embroidered on a navy polo shirt'
+];
+$customModified = [
+    'dtg-vs-screen-print' => '2026-11-13T00:00:00+05:00',
+    'logo-digitization-art' => '2026-11-14T00:00:00+05:00'
+];
 
-$pageDescription = ($slug === 'dtg-vs-screen-print')
-    ? 'Compare DTG and screen printing for custom T-shirts: artwork, fabric, order quantities, print feel, durability, cost factors, and how to choose.'
-    : htmlspecialchars(!empty($post['excerpt']) ? $post['excerpt'] : mb_substr(strip_tags($post['content']), 0, 155));
+$pageTitle = $customTitles[$slug] ?? (htmlspecialchars($post['title']) . ' | Welzee Blog');
+$pageDescription = $customDescriptions[$slug] ?? htmlspecialchars(!empty($post['excerpt']) ? $post['excerpt'] : mb_substr(strip_tags($post['content']), 0, 155));
 
 $canonicalUrl = 'https://welzee.com/blog/' . rawurlencode($slug);
 $pageOgType = 'article';
@@ -47,15 +59,13 @@ if (!preg_match('#^https?://#i', $coverImage)) {
 $pageOgImage = $coverImage;
 
 // Editorial Alt Text
-$imageAlt = ($slug === 'dtg-vs-screen-print')
-    ? 'DTG printer and screen-printing press producing different designs on cotton T-shirts'
-    : htmlspecialchars($post['title']);
+$imageAlt = $customAlts[$slug] ?? htmlspecialchars($post['title']);
 
 // Published and Modified Dates (consistent & truthful; never dynamic per-request)
 $datePublished = date('c', strtotime($post['created_at']));
 $dateModified = !empty($post['updated_at'])
     ? date('c', strtotime($post['updated_at']))
-    : (($slug === 'dtg-vs-screen-print') ? '2026-11-13T00:00:00+05:00' : $datePublished);
+    : ($customModified[$slug] ?? $datePublished);
 
 $pageJsonLd = [
     '@context' => 'https://schema.org',

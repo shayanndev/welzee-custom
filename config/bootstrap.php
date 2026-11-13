@@ -8,7 +8,7 @@
  * Secrets are NEVER stored in this file. They live in a private config file:
  *   1. $WELZEE_CONFIG_FILE environment variable (if set), else
  *   2. <parent of document root>/welzee_private/config.php
- *      (Namecheap: /home/welzywbw/welzee_private/config.php), else
+ *      (Namecheap: /home/welzywbv/welzee_private/config.php), else
  *   3. config/config.local.php  (local XAMPP development only; not deployed)
  *
  * Requires PHP >= 8.0.
@@ -30,7 +30,7 @@ function app_config_defaults(): array
         'env'       => 'production',            // 'production' | 'local'
         'site_url'  => '',                      // e.g. https://welzee.com (no trailing slash needed)
         'timezone'  => 'Asia/Karachi',
-        'log_dir'   => '',                      // e.g. /home/welzywbw/welzee_private/logs
+        'log_dir'   => '',                      // e.g. /home/welzywbv/welzee_private/logs
         'db' => [
             'host' => 'localhost',
             'port' => 3306,

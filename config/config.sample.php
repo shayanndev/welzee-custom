@@ -2,7 +2,7 @@
 /**
  * Welzee PRODUCTION private configuration TEMPLATE.
  *
- * Install as:   /home/welzywbw/welzee_private/config.php
+ * Install as:   /home/welzywbv/welzee_private/config.php
  * (i.e. OUTSIDE public_html - never upload this file into public_html)
  *
  * chmod 600 (or 640). Replace every TO_BE_CONFIGURED value.
@@ -15,13 +15,13 @@ return [
     'env'      => 'production',
     'site_url' => 'https://welzee.com',          // canonical, non-www, https
     'timezone' => 'Asia/Karachi',
-    'log_dir'  => '/home/welzywbw/welzee_private/logs',   // create this folder (chmod 750)
+    'log_dir'  => '/home/welzywbv/welzee_private/logs',   // create this folder (chmod 750)
 
     'db' => [
         'host' => 'localhost',
         'port' => 3306,
-        'name' => 'TO_BE_CONFIGURED',   // cPanel prefixes names, e.g. welzywbw_welzee
-        'user' => 'TO_BE_CONFIGURED',   // e.g. welzywbw_welzee
+        'name' => 'welzywbv_updated',   // Namecheap cPanel production database
+        'user' => 'TO_BE_CONFIGURED',   // e.g. welzywbv_user
         'pass' => 'TO_BE_CONFIGURED',
         'time_zone' => '+05:00',
     ],
