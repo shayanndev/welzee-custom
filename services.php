@@ -25,7 +25,7 @@ $pageJsonLd = [
                 'itemOffered' => [
                     '@type' => 'Service',
                     'name' => 'Custom Embroidery Services',
-                    'description' => 'Precision computerized embroidery on polos, jackets, caps, and workwear.'
+                    'description' => 'Precision computerized multi-head embroidery on polos, jackets, caps, and workwear.'
                 ]
             ],
             [
@@ -33,7 +33,31 @@ $pageJsonLd = [
                 'itemOffered' => [
                     '@type' => 'Service',
                     'name' => 'Direct to Garment (DTG) & Textile Printing',
-                    'description' => 'Full-color photorealistic textile printing on custom T-shirts and apparel.'
+                    'description' => 'Vibrant, soft-hand digital and flex printing for custom T-shirts and promotional apparel.'
+                ]
+            ],
+            [
+                '@type' => 'Offer',
+                'itemOffered' => [
+                    '@type' => 'Service',
+                    'name' => 'Custom Caps & Headwear Decoration',
+                    'description' => '3D puff and flat embroidery on structured snapbacks, dad caps, and beanies.'
+                ]
+            ],
+            [
+                '@type' => 'Offer',
+                'itemOffered' => [
+                    '@type' => 'Service',
+                    'name' => 'Corporate Uniforms & Workwear Supply',
+                    'description' => 'Comprehensive employee apparel programs, personalized teamwear, and wholesale blanks.'
+                ]
+            ],
+            [
+                '@type' => 'Offer',
+                'itemOffered' => [
+                    '@type' => 'Service',
+                    'name' => 'Logo Digitizing & Stitch Preparation',
+                    'description' => 'Expert manual conversion of 2D logo artwork into machine-ready .DST embroidery files.'
                 ]
             ]
         ]
@@ -71,7 +95,7 @@ include __DIR__ . '/includes/header.php';
                     We source our blanks exclusively from recognized, ethical suppliers. Our embroidery threads are colorfast, bleach-resistant poly-neon threads that will outlast the garment itself. For printing, we utilize eco-friendly, water-based inks that penetrate the fabric rather than sitting heavily on top.
                 </p>
                 <ul class="space-y-3">
-                    <li class="flex items-center gap-3"><i class="fa-solid fa-check text-primary"></i> <span class="text-sm font-medium text-gray-700">Oeko-Tex Standard 100 Certified</span></li>
+                    <li class="flex items-center gap-3"><i class="fa-solid fa-check text-primary"></i> <span class="text-sm font-medium text-gray-700">Oeko-Tex compliant blanks & threads</span></li>
                     <li class="flex items-center gap-3"><i class="fa-solid fa-check text-primary"></i> <span class="text-sm font-medium text-gray-700">Bleach & UV Resistant Threads</span></li>
                     <li class="flex items-center gap-3"><i class="fa-solid fa-check text-primary"></i> <span class="text-sm font-medium text-gray-700">Recycled Polyester Options</span></li>
                 </ul>
@@ -116,7 +140,7 @@ include __DIR__ . '/includes/header.php';
                 <ul class="space-y-4 mb-8">
                     <li class="flex items-start gap-4">
                         <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
-                        <span class="text-gray-200 font-medium">Extremely durable and wash-resistant up to 95°C</span>
+                        <span class="text-gray-200 font-medium">Extremely durable and wash-resistant up to 95&deg;C</span>
                     </li>
                     <li class="flex items-start gap-4">
                         <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>

@@ -42,9 +42,9 @@ include __DIR__ . '/includes/header.php';
 
         <!-- Trust indicators -->
         <div class="mt-16 flex flex-wrap justify-center gap-8 text-sm text-gray-400 font-medium">
-            <span class="flex items-center gap-2"><i class="fa-solid fa-check text-primary"></i> No setup fees</span>
-            <span class="flex items-center gap-2"><i class="fa-solid fa-check text-primary"></i> Fast production</span>
-            <span class="flex items-center gap-2"><i class="fa-solid fa-check text-primary"></i> Volume discounts</span>
+            <span class="flex items-center gap-2"><i class="fa-solid fa-check text-primary"></i> No hidden fees</span>
+            <span class="flex items-center gap-2"><i class="fa-solid fa-check text-primary"></i> Fast 5–7 day production</span>
+            <span class="flex items-center gap-2"><i class="fa-solid fa-check text-primary"></i> Volume tier discounts</span>
         </div>
     </div>
 </section>
@@ -73,8 +73,7 @@ include __DIR__ . '/includes/header.php';
                 </div>
                 <div>
                     <h3 class="font-bold text-secondary text-xl mb-2">Fast Turnaround</h3>
-                    <p class="text-gray-600 text-sm leading-relaxed">Standard production completes in 7-10 working days,
-                        with expedited express options available for urgent corporate events.</p>
+                    <p class="text-gray-600 text-sm leading-relaxed">Standard production completes in 5 to 7 business days following digital proof approval, with expedited express options available for urgent events.</p>
                 </div>
             </div>
             <div
@@ -201,100 +200,67 @@ include __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<!-- Testimonials -->
+<!-- Production Capabilities & Standards -->
 <section class="bg-white py-20">
     <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h2 class="text-3xl md:text-5xl font-extrabold text-secondary tracking-tight mb-4">Trusted by Industry
-                Leaders</h2>
-            <p class="text-lg text-gray-500 max-w-2xl mx-auto">See what our partners have to say about Welzee's premium
-                finishing services.</p>
+            <h2 class="text-3xl md:text-5xl font-extrabold text-secondary tracking-tight mb-4">Engineered for Brand Precision</h2>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">From corporate uniform programs to custom team merchandise, we combine industrial technology with meticulous hand inspection.</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-100 relative">
-                <i class="fa-solid fa-quote-left text-4xl text-primary/20 absolute top-6 left-6"></i>
-                <div class="relative z-10">
-                    <div class="flex text-yellow-400 mb-4 text-sm"><i class="fa-solid fa-star"></i><i
-                            class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
-                            class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                    <p class="text-gray-700 font-medium mb-6 italic">"The puff embroidery on our snapbacks is
-                        phenomenal. Welzee turned our simple 2D logo into a 3D masterpiece that our staff fights over."
-                    </p>
-                    <div class="flex items-center gap-4">
-                        <img src="https://placehold.co/100x100/f1f5f9/64748b?text=JS"
-                            class="w-12 h-12 rounded-full object-cover">
-                        <div>
-                            <h4 class="font-bold text-secondary">Jameel S.</h4>
-                            <p class="text-xs text-gray-500">Logistics Director</p>
-                        </div>
-                    </div>
+            <div class="bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-100 relative hover:border-primary/30 transition">
+                <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xl mb-6 font-bold">
+                    <i class="fa-solid fa-bezier-curve"></i>
                 </div>
+                <h3 class="font-bold text-secondary text-xl mb-3">Custom Digitizing & Proofing</h3>
+                <p class="text-gray-600 text-sm leading-relaxed mb-4">Every logo is manually punched into stitch files with tailored thread tension and pull compensation for your chosen fabric. You review a high-resolution digital visual mockup before a single stitch is made.</p>
+                <span class="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-check"></i> Zero Reorder Setup Fees</span>
             </div>
-            <div class="bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-100 relative">
-                <i class="fa-solid fa-quote-left text-4xl text-primary/20 absolute top-6 left-6"></i>
-                <div class="relative z-10">
-                    <div class="flex text-yellow-400 mb-4 text-sm"><i class="fa-solid fa-star"></i><i
-                            class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
-                            class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                    <p class="text-gray-700 font-medium mb-6 italic">"We needed 500 polos for our corporate event within
-                        2 weeks. They delivered ahead of schedule and the thread quality is brilliant."</p>
-                    <div class="flex items-center gap-4">
-                        <img src="https://placehold.co/100x100/f1f5f9/64748b?text=AK"
-                            class="w-12 h-12 rounded-full object-cover">
-                        <div>
-                            <h4 class="font-bold text-secondary">Ayesha K.</h4>
-                            <p class="text-xs text-gray-500">Event Manager</p>
-                        </div>
-                    </div>
+            <div class="bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-100 relative hover:border-primary/30 transition">
+                <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xl mb-6 font-bold">
+                    <i class="fa-solid fa-industry"></i>
                 </div>
+                <h3 class="font-bold text-secondary text-xl mb-3">Multi-Head Industrial Capacity</h3>
+                <p class="text-gray-600 text-sm leading-relaxed mb-4">Our workshop operates multi-head computerized embroidery machines and calibrated DTG printers capable of handling uniform batches from 10 pieces up to large-scale franchise rollouts.</p>
+                <span class="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-check"></i> Standard 5–7 Day Turnaround</span>
             </div>
-            <div class="bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-100 relative">
-                <i class="fa-solid fa-quote-left text-4xl text-primary/20 absolute top-6 left-6"></i>
-                <div class="relative z-10">
-                    <div class="flex text-yellow-400 mb-4 text-sm"><i class="fa-solid fa-star"></i><i
-                            class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
-                            class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                    <p class="text-gray-700 font-medium mb-6 italic">"Their Direct-To-Garment prints are unbelievably
-                        vibrant. Welzee is now our sole supplier for our entire restaurant franchise."</p>
-                    <div class="flex items-center gap-4">
-                        <img src="https://placehold.co/100x100/f1f5f9/64748b?text=MR"
-                            class="w-12 h-12 rounded-full object-cover">
-                        <div>
-                            <h4 class="font-bold text-secondary">M. Rizwan</h4>
-                            <p class="text-xs text-gray-500">Operations Head</p>
-                        </div>
-                    </div>
+            <div class="bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-100 relative hover:border-primary/30 transition">
+                <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xl mb-6 font-bold">
+                    <i class="fa-solid fa-boxes-packing"></i>
                 </div>
+                <h3 class="font-bold text-secondary text-xl mb-3">Domestic & US Tracked Shipping</h3>
+                <p class="text-gray-600 text-sm leading-relaxed mb-4">Manufactured and dispatched directly from Pakistan. Fast nationwide delivery via TCS, Leopards, and CallCourier, with reliable tracked international air courier service to the United States.</p>
+                <span class="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-check"></i> PKR & USD Transparent Quoting</span>
             </div>
         </div>
     </div>
 </section>
 
-<!-- FAQ -->
+<!-- FAQ Preview -->
 <section class="bg-gray-50 py-20 border-t border-gray-200">
     <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h2 class="text-3xl md:text-5xl font-extrabold text-secondary tracking-tight mb-4">Frequently Asked
-                Questions (FAQs)</h2>
-            <p class="text-lg text-gray-500 max-w-2xl mx-auto">Everything you need to know about our custom apparel
-                process.</p>
+            <h2 class="text-3xl md:text-5xl font-extrabold text-secondary tracking-tight mb-4">Frequently Asked Questions</h2>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">Common questions about custom embroidery, minimums, and shipping.</p>
         </div>
-        <div class="space-y-4">
+        <div class="space-y-4 max-w-4xl mx-auto">
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 class="font-bold text-lg text-secondary mb-2">What is the minimum order quantity (MOQ)?</h3>
-                <p class="text-gray-600">For embroidery, we require a minimum order of 10 pieces to cover the
-                    digitization setup costs. For direct-to-garment printing, there is no minimum order requirement!</p>
+                <p class="text-gray-600 text-sm leading-relaxed">For custom embroidery, our standard minimum order quantity is 10 pieces per design to cover machine hooping and setup. For direct-to-garment (DTG) printing, smaller flexible runs can be accommodated.</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 class="font-bold text-lg text-secondary mb-2">How long does shipping take within Pakistan?</h3>
-                <p class="text-gray-600">Standard production takes 5-7 business days. Once shipped, nationwide delivery
-                    generally takes 24-48 hours via Leopard or TCS.</p>
+                <h3 class="font-bold text-lg text-secondary mb-2">How long does production and shipping take?</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">Standard production takes 5 to 7 business days following digital proof approval. Once dispatched from our Karachi facility, nationwide delivery across Pakistan takes 2 to 4 business days. International delivery to the US is shipped via tracked air couriers.</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 class="font-bold text-lg text-secondary mb-2">Can I supply my own garments?</h3>
-                <p class="text-gray-600">Yes! We offer contract decoration services for B2B partners who supply their
-                    own blanks. Contact us directly for contract rates.</p>
+                <h3 class="font-bold text-lg text-secondary mb-2">Can I supply my own garments for decoration (CMT)?</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">Yes! In addition to our wholesale apparel blanks, we accept client-supplied garments subject to fabric inspection for embroidery or printing compatibility.</p>
             </div>
+        </div>
+        <div class="text-center mt-8">
+            <a href="faq" class="inline-flex items-center gap-2 text-primary font-bold hover:underline text-base">
+                View all 20+ Frequently Asked Questions <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
         </div>
     </div>
 </section>
@@ -326,7 +292,7 @@ include __DIR__ . '/includes/header.php';
     document.addEventListener('CurrencyChanged', updatePrices);
 
     function updatePrices() {
-        const store = window.Welzee || window.Eilotu;
+        const store = window.Welzee;
         const isPkr = store && store.currency === 'PKR';
 
         document.querySelectorAll('.price-display').forEach(el => {
@@ -341,7 +307,7 @@ include __DIR__ . '/includes/header.php';
     }
 
     // Initial run in case already fully loaded
-    if ((window.Welzee && window.Welzee.currency) || (window.Eilotu && window.Eilotu.currency)) updatePrices();
+    if (window.Welzee && window.Welzee.currency) updatePrices();
 </script>
 
 <?php

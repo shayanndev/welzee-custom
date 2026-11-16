@@ -237,7 +237,7 @@ $resolvedOgImage = $pageOgImage ?? $defaultOgImage;
     <!-- Topbar (Contact / Info Strip) -->
     <div class="bg-secondary text-gray-300 text-xs py-2 px-4 sm:px-6 lg:px-8 flex justify-between items-center border-b border-white/10 z-50 relative">
         <div class="flex items-center gap-4">
-            <span class="hidden sm:inline-block"><i class="fa-solid fa-location-dot text-primary mr-1"></i> Dispatched from Pakistan • Nationwide & USA Delivery</span>
+            <span class="hidden sm:inline-block"><i class="fa-solid fa-location-dot text-primary mr-1"></i> Dispatched from Pakistan &bull; Nationwide & USA Delivery</span>
             <span class="inline-block sm:hidden"><i class="fa-solid fa-location-dot text-primary mr-1"></i> Dispatched from Pakistan</span>
         </div>
         <div class="flex items-center gap-4 font-medium">

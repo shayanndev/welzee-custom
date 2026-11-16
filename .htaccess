@@ -48,7 +48,7 @@ RewriteRule ^our-services/?$ https://welzee.com/services [R=301,L]
 RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
 RewriteRule ^custom-order/?$ https://welzee.com/custom_order [R=301,L]
 RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
-RewriteRule ^faqs?/?$ https://welzee.com/faq [R=301,L]
+RewriteRule ^faqs/?$ https://welzee.com/faq [R=301,L]
 RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
 RewriteRule ^(terms-and-conditions|terms-of-service)/?$ https://welzee.com/terms [R=301,L]
 RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
@@ -68,7 +68,7 @@ RewriteRule ^our-services/?$ services.php [L]
 RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
 RewriteRule ^custom-order/?$ custom_order.php [L]
 RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
-RewriteRule ^faqs?/?$ faq.php [L]
+RewriteRule ^faqs/?$ faq.php [L]
 RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
 RewriteRule ^(terms-and-conditions|terms-of-service)/?$ terms.php [L]
 RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
@@ -87,7 +87,16 @@ RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
 # ---- 6. Active Dynamic & Extensionless PHP Routing ----
-# These rules take strict precedence over legacy 410 rules below.
+# Explicit core routes for deterministic execution across LiteSpeed and Apache
+RewriteRule ^faq/?$ faq.php [L]
+RewriteRule ^about/?$ about.php [L]
+RewriteRule ^services/?$ services.php [L]
+RewriteRule ^contact/?$ contact.php [L]
+RewriteRule ^custom_order/?$ custom_order.php [L]
+RewriteRule ^shipping/?$ shipping.php [L]
+RewriteRule ^returns/?$ returns.php [L]
+RewriteRule ^privacy/?$ privacy.php [L]
+RewriteRule ^terms/?$ terms.php [L]
 
 # Blog Clean URLs
 RewriteRule ^blog/?$ blog.php [L]

@@ -1,7 +1,33 @@
 <?php
-// about.php
+// about.php - About Welzee & Production Craftsmanship
+require_once __DIR__ . '/config/bootstrap.php';
+$base_url = app_base_url();
+
 $pageTitle = 'About Welzee | Professional Embroidery & Garment Printing';
 $pageDescription = 'Learn about Welzee\'s manufacturing workshop in Pakistan, our dedicated apparel crafting team, and our commitment to premium embroidery and printing quality.';
+$canonicalUrl = 'https://welzee.com/about';
+
+$pageJsonLd = [
+    '@context' => 'https://schema.org',
+    '@type' => 'AboutPage',
+    'name' => 'About Welzee',
+    'url' => 'https://welzee.com/about',
+    'description' => 'Professional custom embroidery, garment printing, and corporate apparel finishing based in Karachi, Pakistan.',
+    'mainEntity' => [
+        '@type' => 'Organization',
+        'name' => 'Welzee',
+        'url' => 'https://welzee.com/',
+        'logo' => 'https://welzee.com/assets/images/favicon.png',
+        'email' => 'info@welzee.com',
+        'telephone' => '+92 320 5993161',
+        'address' => [
+            '@type' => 'PostalAddress',
+            'addressLocality' => 'Karachi',
+            'addressCountry' => 'PK'
+        ]
+    ]
+];
+
 include __DIR__ . '/includes/header.php';
 ?>
 
@@ -10,6 +36,7 @@ include __DIR__ . '/includes/header.php';
     <!-- Decorative transparent pattern -->
     <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 2px, transparent 2px); background-size: 30px 30px;"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <span class="inline-block py-1 px-3.5 rounded-full bg-primary/20 text-primary border border-primary/30 text-xs font-bold tracking-widest uppercase mb-4">Textile Craftsmanship</span>
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">Who We Are</h1>
         <p class="text-xl text-gray-300 max-w-2xl mx-auto font-medium">Precision textile craftsmanship woven into every stitch and print.</p>
     </div>
@@ -20,21 +47,21 @@ include __DIR__ . '/includes/header.php';
     
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div>
-            <span class="text-primary font-bold tracking-widest uppercase text-sm mb-2 block">Our Story</span>
+            <span class="text-primary font-bold tracking-widest uppercase text-sm mb-2 block">Our Craftsmanship</span>
             <h2 class="text-3xl md:text-4xl font-extrabold text-secondary mb-6">Crafting Corporate Identity with Precision.</h2>
-            <div class="prose prose-lg text-gray-600">
-                <p class="mb-4">
-                    What started as a dedicated workshop has grown into a trusted provider of premium textile finishing. We understand that your corporate apparel is more than just clothing—it's the first impression your team makes.
+            <div class="prose prose-lg text-gray-600 leading-relaxed space-y-4">
+                <p>
+                    Welzee is a specialized apparel decoration workshop based in Karachi, Pakistan. We understand that your corporate apparel is more than just clothing&mdash;it's the first physical impression your team and brand make.
                 </p>
-                <p class="mb-6">
-                    We invest heavily in high-performance multi-head embroidery machines and sustainable printing technology. But the real secret to our quality is our people: trained punchers, meticulous machine operators, and dedicated support specialists who ensure your logo looks sharp every single time.
+                <p>
+                    We operate computerized multi-head embroidery machinery and calibrated textile printing technology. But the real foundation of our quality is technical precision: skilled digitizers who map stitch angles and pull compensation for specific fabrics, trained machine operators who balance thread tensions, and inspectors who examine every finished garment before packing.
                 </p>
             </div>
             
             <div class="grid grid-cols-2 gap-6 mt-10">
                 <div class="border-l-4 border-primary pl-4">
                     <div class="text-2xl font-extrabold text-secondary">Pakistan</div>
-                    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Production & Dispatch Origin</div>
+                    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Manufacturing & Dispatch Origin</div>
                 </div>
                 <div class="border-l-4 border-primary pl-4">
                     <div class="text-2xl font-extrabold text-secondary">B2B & Custom</div>
@@ -59,91 +86,88 @@ include __DIR__ . '/includes/header.php';
 
 </div>
 
-<!-- Guarantee Section -->
+<!-- Guarantee / Commitment Section -->
 <section class="py-20 bg-primary">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <i class="fa-solid fa-ranking-star text-white text-6xl mb-6"></i>
-        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Our Quality Guarantee</h2>
-        <p class="text-xl text-primary-light max-w-3xl mx-auto mb-10 font-medium">
-            We don't ship anything we wouldn't wear ourselves. Every stitched logo and printed graphic undergoes a strict 3-point visual inspection before shipping.
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Our Quality Commitment</h2>
+        <p class="text-xl text-primary-light max-w-3xl mx-auto mb-10 font-medium leading-relaxed">
+            Every stitched logo and printed graphic undergoes manual visual inspection before shipping. If an order has an objective manufacturing flaw that deviates from your approved proof, we replace it free of charge.
         </p>
-        <a href="custom_order" class="bg-white text-primary font-bold py-4 px-10 rounded-full transition shadow-lg hover:shadow-xl text-lg inline-block transform hover:-translate-y-1">
-            Experience It Now
+        <a href="<?php echo $base_url; ?>custom_order" class="bg-white text-primary font-bold py-4 px-10 rounded-full transition shadow-lg hover:shadow-xl text-lg inline-block transform hover:-translate-y-1">
+            Design Custom Apparel
         </a>
     </div>
 </section>
 
-<!-- Meet the Team -->
+<!-- Production Disciplines Section (Replaces fabricated personas) -->
 <section class="py-20 bg-gray-50 border-t border-gray-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h2 class="text-3xl font-extrabold text-secondary tracking-tight mb-4">Meet the Leadership</h2>
-            <p class="text-gray-500 max-w-2xl mx-auto">The industry veterans ensuring every thread and drop of ink is absolutely perfect.</p>
+            <span class="text-xs font-bold text-primary uppercase tracking-widest block mb-2">Technical Capabilities</span>
+            <h2 class="text-3xl font-extrabold text-secondary tracking-tight mb-4">Our Production Disciplines</h2>
+            <p class="text-gray-500 max-w-2xl mx-auto">The core technical disciplines that ensure every stitch, thread, and ink cure meets our commercial standards.</p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div class="text-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-                <div class="w-24 h-24 rounded-full bg-primary/10 text-primary border-2 border-primary/20 mx-auto mb-4 flex items-center justify-center text-2xl font-extrabold shadow-inner">
-                    <i class="fa-solid fa-user-tie"></i>
-                </div>
-                <h3 class="text-lg font-bold text-secondary">Ahmad R.</h3>
-                <p class="text-primary font-semibold text-xs uppercase tracking-wider mt-1">Managing Director</p>
-                <p class="text-xs text-gray-500 mt-2">Production Strategy & Quality</p>
-            </div>
-            <div class="text-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-                <div class="w-24 h-24 rounded-full bg-primary/10 text-primary border-2 border-primary/20 mx-auto mb-4 flex items-center justify-center text-2xl font-extrabold shadow-inner">
-                    <i class="fa-solid fa-gears"></i>
-                </div>
-                <h3 class="text-lg font-bold text-secondary">Sara K.</h3>
-                <p class="text-primary font-semibold text-xs uppercase tracking-wider mt-1">Head of Operations</p>
-                <p class="text-xs text-gray-500 mt-2">Fulfillment & Workflow</p>
-            </div>
-            <div class="text-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-                <div class="w-24 h-24 rounded-full bg-primary/10 text-primary border-2 border-primary/20 mx-auto mb-4 flex items-center justify-center text-2xl font-extrabold shadow-inner">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-2xl mb-6 font-bold">
                     <i class="fa-solid fa-bezier-curve"></i>
                 </div>
-                <h3 class="text-lg font-bold text-secondary">Usman M.</h3>
-                <p class="text-primary font-semibold text-xs uppercase tracking-wider mt-1">Lead Digitizer</p>
-                <p class="text-xs text-gray-500 mt-2">Vector & Stitch Mapping</p>
+                <h3 class="text-xl font-bold text-secondary mb-2">Vector Digitizing</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Expert manual punch mapping, stitch path optimization, pull compensation, and underlay engineering tailored to pique, fleece, or twill.</p>
             </div>
-            <div class="text-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-                <div class="w-24 h-24 rounded-full bg-primary/10 text-primary border-2 border-primary/20 mx-auto mb-4 flex items-center justify-center text-2xl font-extrabold shadow-inner">
+            <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-2xl mb-6 font-bold">
+                    <i class="fa-solid fa-gears"></i>
+                </div>
+                <h3 class="text-xl font-bold text-secondary mb-2">Machine Calibration</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Multi-head industrial embroidery machines with continuous tension balancing and needle alignment to prevent puckering or gaps.</p>
+            </div>
+            <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-2xl mb-6 font-bold">
+                    <i class="fa-solid fa-palette"></i>
+                </div>
+                <h3 class="text-xl font-bold text-secondary mb-2">Textile Chemistry</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Colorfast poly-neon embroidery threads and water-based textile inks cured under controlled heat-press temperatures for wash resistance.</p>
+            </div>
+            <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-2xl mb-6 font-bold">
                     <i class="fa-solid fa-clipboard-check"></i>
                 </div>
-                <h3 class="text-lg font-bold text-secondary">Fatima A.</h3>
-                <p class="text-primary font-semibold text-xs uppercase tracking-wider mt-1">Quality Assurance</p>
-                <p class="text-xs text-gray-500 mt-2">3-Point Inspection Control</p>
+                <h3 class="text-xl font-bold text-secondary mb-2">Quality Inspection</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Hand inspection of backing cleanup, loose thread trimming, print cure adhesion, and neat individual garment folding before carton boxing.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Company Timeline -->
+<!-- Manufacturing Principles Section (Replaces fabricated history timeline) -->
 <section class="py-20 bg-white">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-extrabold text-center text-secondary tracking-tight mb-16">Our Journey</h2>
+        <div class="text-center mb-16">
+            <span class="text-xs font-bold text-primary uppercase tracking-widest block mb-2">How We Work</span>
+            <h2 class="text-3xl font-extrabold text-secondary tracking-tight">Our Manufacturing Principles</h2>
+        </div>
         <div class="space-y-12">
-            <div class="flex flex-col sm:flex-row gap-6 items-start hover:-translate-y-1 transition placeholder">
-                <div class="shrink-0 w-24 pt-2 font-bold text-primary text-xl">2010</div>
-                <div class="pb-12 sm:border-l-2 sm:border-gray-200 sm:pl-8 relative">
-                    <div class="hidden sm:block absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-3 shadow-[0_0_0_4px_white]"></div>
-                    <h3 class="text-xl font-bold text-secondary mb-2">Humble Beginnings</h3>
-                    <p class="text-gray-600">Started as a small single-head embroidery operation in a garage, focusing purely on local sports teams in Pakistan.</p>
+            <div class="flex flex-col sm:flex-row gap-6 items-start">
+                <div class="shrink-0 w-24 pt-1 font-extrabold text-primary text-xl">01</div>
+                <div class="sm:border-l-2 sm:border-gray-200 sm:pl-8">
+                    <h3 class="text-xl font-bold text-secondary mb-2">Proof Sign-off Before Production</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">We never guess stitch colors or design dimensions. Every order receives a digital visual mockup detailing scale, placement, and thread specifications for your written authorization.</p>
                 </div>
             </div>
-            <div class="flex flex-col sm:flex-row gap-6 items-start hover:-translate-y-1 transition placeholder">
-                <div class="shrink-0 w-24 pt-2 font-bold text-primary text-xl">2016</div>
-                <div class="pb-12 sm:border-l-2 sm:border-gray-200 sm:pl-8 relative">
-                    <div class="hidden sm:block absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-3 shadow-[0_0_0_4px_white]"></div>
-                    <h3 class="text-xl font-bold text-secondary mb-2">Expanding Capabilities</h3>
-                    <p class="text-gray-600">Invested in industrial DTG and screen printing machines, allowing us to cater to massive corporate events and franchise uniforms.</p>
+            <div class="flex flex-col sm:flex-row gap-6 items-start">
+                <div class="shrink-0 w-24 pt-1 font-extrabold text-primary text-xl">02</div>
+                <div class="sm:border-l-2 sm:border-gray-200 sm:pl-8">
+                    <h3 class="text-xl font-bold text-secondary mb-2">Permanent Stitch File Archiving</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Once your logo is digitized and approved, your production stitch file is permanently archived on our secure servers. Reorders reproduce the exact same needle tension and thread colors with zero setup fees.</p>
                 </div>
             </div>
-            <div class="flex flex-col sm:flex-row gap-6 items-start hover:-translate-y-1 transition placeholder">
-                <div class="shrink-0 w-24 pt-2 font-bold text-primary text-xl">Today</div>
-                <div class="sm:border-l-2 sm:border-transparent sm:pl-8 relative">
-                    <div class="hidden sm:block absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-3 shadow-[0_0_0_4px_white]"></div>
-                    <h3 class="text-xl font-bold text-secondary mb-2">Expanded Custom Fulfillment</h3>
-                    <p class="text-gray-600">Supplying customized uniforms, polos, and promotional apparel to corporate clients in Pakistan and fulfilling direct custom orders for customers in the United States.</p>
+            <div class="flex flex-col sm:flex-row gap-6 items-start">
+                <div class="shrink-0 w-24 pt-1 font-extrabold text-primary text-xl">03</div>
+                <div class="sm:border-l-2 sm:border-gray-200 sm:pl-8">
+                    <h3 class="text-xl font-bold text-secondary mb-2">Tracked Door-to-Door Delivery</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">From our workshop in Karachi, domestic shipments are delivered via established courier networks (TCS, Leopards, CallCourier) and international shipments to the US are dispatched via tracked air couriers with tracking codes provided upon dispatch.</p>
                 </div>
             </div>
         </div>

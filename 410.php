@@ -12,7 +12,7 @@ include __DIR__ . '/includes/header.php';
     <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
         <i class="fa-solid fa-box-archive"></i>
     </div>
-    <p class="text-sm font-bold tracking-widest text-primary uppercase mb-2">HTTP 410 • Discontinued</p>
+    <p class="text-sm font-bold tracking-widest text-primary uppercase mb-2">HTTP 410 &bull; Discontinued</p>
     <h1 class="text-4xl md:text-5xl font-extrabold text-secondary tracking-tight mb-4">Product or Page Discontinued</h1>
     <p class="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
         This legacy leather-jacket store page has been permanently removed as part of Welzee's transition to custom corporate embroidery, garment printing, and personalized apparel.
