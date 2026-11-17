@@ -30,19 +30,23 @@ $post = $result->fetch_assoc();
 // SEO Title & Description mapping
 $customTitles = [
     'dtg-vs-screen-print' => 'DTG vs Screen Printing for Custom T-Shirts | Welzee',
-    'logo-digitization-art' => 'How to Prepare a Logo for Embroidery | Welzee'
+    'logo-digitization-art' => 'How to Prepare a Logo for Embroidery | Welzee',
+    'impact-of-premium-uniforms' => 'Company Uniform Buying Guide: Fabric, Fit & Logos | Welzee'
 ];
 $customDescriptions = [
     'dtg-vs-screen-print' => 'Compare DTG and screen printing for custom T-shirts: artwork, fabric, order quantities, print feel, durability, cost factors, and how to choose.',
-    'logo-digitization-art' => 'Prepare your logo for embroidery with the right artwork, size, lettering and fabric details. Learn about digitizing, DST/PES files and approval checks.'
+    'logo-digitization-art' => 'Prepare your logo for embroidery with the right artwork, size, lettering and fabric details. Learn about digitizing, DST/PES files and approval checks.',
+    'impact-of-premium-uniforms' => 'Choosing company uniforms? Compare fabrics, embroidery vs printing, sizing, samples and total costs before ordering team apparel in Pakistan or the USA.'
 ];
 $customAlts = [
     'dtg-vs-screen-print' => 'DTG printer and screen-printing press producing different designs on cotton T-shirts',
-    'logo-digitization-art' => 'Flat company logo artwork beside a close-up of the same logo embroidered on a navy polo shirt'
+    'logo-digitization-art' => 'Flat company logo artwork beside a close-up of the same logo embroidered on a navy polo shirt',
+    'impact-of-premium-uniforms' => 'Folded company polo shirts and a uniform buyer specification sheet with fabric samples and an embroidered sample logo'
 ];
 $customModified = [
     'dtg-vs-screen-print' => '2026-11-13T00:00:00+05:00',
-    'logo-digitization-art' => '2026-11-14T00:00:00+05:00'
+    'logo-digitization-art' => '2026-11-14T00:00:00+05:00',
+    'impact-of-premium-uniforms' => '2026-11-17T00:00:00+05:00'
 ];
 
 $pageTitle = $customTitles[$slug] ?? (htmlspecialchars($post['title']) . ' | Welzee Blog');

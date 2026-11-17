@@ -6,8 +6,8 @@ require_once __DIR__ . '/config/db.php';
 $pageTitle = 'Apparel & Embroidery Insights Blog | Welzee';
 $pageDescription = 'Read expert textile finishing articles, embroidery digitizing tips, DTG printing guides, and corporate uniform branding advice from the Welzee team.';
 
-// Fetch all posts ordered by date
-$stmt = $conn->prepare("SELECT slug, title, category, excerpt, image_url, created_at FROM blog_posts ORDER BY created_at DESC");
+// Fetch published articles (excluding incomplete placeholder drafts)
+$stmt = $conn->prepare("SELECT slug, title, category, excerpt, image_url, created_at FROM blog_posts WHERE CHAR_LENGTH(content) > 500 ORDER BY created_at DESC");
 $stmt->execute();
 $result = $stmt->get_result();
 $posts = $result->fetch_all(MYSQLI_ASSOC);

@@ -53,7 +53,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
         ob_end_clean();
 
         if (isset($conn) && $conn instanceof mysqli) {
-            $stmt = $conn->prepare("SELECT slug, created_at FROM blog_posts ORDER BY created_at DESC");
+            $stmt = $conn->prepare("SELECT slug, created_at, CHAR_LENGTH(content) AS content_len FROM blog_posts ORDER BY created_at DESC");
             $stmt->execute();
             $result = $stmt->get_result();
             if ($result) {
@@ -65,11 +65,21 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
         // Fall back silently (details are in the error log if DB failed)
     }
 
-    // Output blog posts
+    // Explicit publication dates for substantially updated articles
+    $articleLastMod = [
+        'dtg-vs-screen-print' => '2026-11-13',
+        'logo-digitization-art' => '2026-11-14',
+        'impact-of-premium-uniforms' => '2026-11-17'
+    ];
+
+    // Output blog posts (excluding thin placeholder stubs)
     foreach ($blog_posts as $post) {
         $slug = $post['slug'];
+        if (isset($post['content_len']) && (int)$post['content_len'] < 500) {
+            continue; // Never submit incomplete placeholder stubs to search engine sitemaps
+        }
         $url = $base_url . 'blog/' . rawurlencode($slug);
-        $lastmod = date('Y-m-d', strtotime($post['created_at']));
+        $lastmod = $articleLastMod[$slug] ?? date('Y-m-d', strtotime($post['created_at']));
         
         echo '  <url>' . PHP_EOL;
         echo '    <loc>' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '</loc>' . PHP_EOL;
