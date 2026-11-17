@@ -69,7 +69,8 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
     $articleLastMod = [
         'dtg-vs-screen-print' => '2026-11-13',
         'logo-digitization-art' => '2026-11-14',
-        'impact-of-premium-uniforms' => '2026-11-17'
+        'impact-of-premium-uniforms' => '2026-11-17',
+        'recycled-embroidery-threads' => '2026-11-18'
     ];
 
     // Output blog posts (excluding thin placeholder stubs)
