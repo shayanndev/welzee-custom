@@ -109,7 +109,7 @@ $articleBody = $post['content'];
 if ($base_url !== '/' && $base_url !== '') {
     $articleBody = str_replace(
         ['href="/services"', 'href="/custom_order"', 'href="/about"', 'href="/contact"'],
-        ['href="' . $base_url . 'services"', 'href="' . $base_url . 'custom_order"', 'href="' . $base_url . 'about"', 'href="' . $base_url . 'contact"'],
+        ['href="' . $base_url . 'services"', 'href="' . $base_url . welzee_customizer_href() . '"', 'href="' . $base_url . 'about"', 'href="' . $base_url . 'contact"'],
         $articleBody
     );
 }

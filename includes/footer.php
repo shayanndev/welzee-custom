@@ -51,7 +51,7 @@ if (!isset($base_url)) {
                     <li><a href="<?php echo $base_url; ?>services"
                             class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i
                                 class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Services</a></li>
-                    <li><a href="<?php echo $base_url; ?>custom_order"
+                    <li><a href="<?php echo $base_url, welzee_customizer_href(); ?>"
                             class="hover:text-primary hover:translate-x-1 transition flex items-center gap-2"><i
                                 class="fa-solid fa-chevron-right text-[10px] text-primary"></i> Custom Order</a></li>
                     <li><a href="<?php echo $base_url; ?>about"

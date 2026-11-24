@@ -251,3 +251,28 @@ function e($value): string
     return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+/* ------------------------------------------------------------------ */
+/* 3D customizer launch switch                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * True only when the config file sets 'use_3d_customizer' => true (boolean).
+ * Missing, false, "true" (string), 1 ... all count as OFF.
+ */
+function welzee_use_3d(): bool
+{
+    return app_config('use_3d_customizer', false) === true;
+}
+
+/**
+ * Customizer link, relative to the base URL. Switch OFF: exactly today's link
+ * ("custom_order", "custom_order?category=tshirt"). Switch ON: the 3D customizer.
+ */
+function welzee_customizer_href(string $product = ''): string
+{
+    if (welzee_use_3d()) {
+        return 'custom_order_3d.php' . ($product !== '' ? '?product=' . rawurlencode($product) : '');
+    }
+    return 'custom_order' . ($product !== '' ? '?category=' . rawurlencode($product) : '');
+}
+

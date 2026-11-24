@@ -279,7 +279,7 @@ $resolvedOgImage = $pageOgImage ?? $defaultOgImage;
 
             <!-- Call to Action Container -->
             <div class="hidden lg:flex items-center justify-end w-1/4">
-                <a href="<?php echo $base_url; ?>custom_order" class="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-full transition shadow-lg shadow-primary/30 flex items-center gap-2 transform hover:-translate-y-0.5">
+                <a href="<?php echo $base_url, welzee_customizer_href(); ?>" class="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-full transition shadow-lg shadow-primary/30 flex items-center gap-2 transform hover:-translate-y-0.5">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> 
                     <span>Customizer</span>
                 </a>
@@ -287,7 +287,7 @@ $resolvedOgImage = $pageOgImage ?? $defaultOgImage;
             
             <!-- Mobile Menu Button -->
             <div class="flex items-center gap-4 lg:hidden">
-                <a href="<?php echo $base_url; ?>custom_order" class="bg-primary text-white px-3 py-1.5 rounded text-sm font-semibold shadow-md">
+                <a href="<?php echo $base_url, welzee_customizer_href(); ?>" class="bg-primary text-white px-3 py-1.5 rounded text-sm font-semibold shadow-md">
                     Design
                 </a>
                 <button class="text-secondary hover:text-primary transition text-2xl focus:outline-none" id="mobileMenuBtn">
