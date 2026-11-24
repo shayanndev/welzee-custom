@@ -1,0 +1,678 @@
+{
+  "spec_version": "1.2",
+  "version": "1.5.0",
+  "coordinates": "base",
+  "comment": "Welzee 3D Product Manifest. coordinates='base': every position (cameraTarget, hangerOffset, printZones[].position) is in metres with the model scaled to targetHeight, its base at y=0 and centred on X/Z. Zone positions sit on the measured cloth surface; normal = outward surface direction; size = [width, height, projector depth]. rack = hanging-rack display block (see rackLayout). fixedMaterialColors = parts that keep a fixed colour (exact material name -> hex). rackColor = colour used on the hanging-rack page. Zones without position/normal/size are derived from the bounding box for ids front/back/rear.",
+  "rackLayout": {
+    "comment": "Fractions of each slot's hanging area (rail at 0, bottom at 1). Garment tops start at garmentTop; cord items put their visual centre on displayLine (= middle of an 80%-high garment).",
+    "garmentTop": 0.07,
+    "displayLine": 0.47
+  },
+  "products": {
+    "tshirt": {
+      "name": "Custom T-Shirt",
+      "category": "tees_polos",
+      "glb": "assets/models/optimized/tshirt.glb",
+      "targetHeight": 0.7,
+      "frontRotation": 0,
+      "cameraDistance": 1.39,
+      "cameraTarget": [
+        0,
+        0.364,
+        0
+      ],
+      "modelScale": [
+        1,
+        1,
+        1
+      ],
+      "printZones": [
+        {
+          "id": "front",
+          "label": "Front",
+          "position": [
+            0,
+            0.42,
+            0.106
+          ],
+          "normal": [
+            0,
+            0.1,
+            1
+          ],
+          "size": [
+            0.18,
+            0.22,
+            0.1
+          ],
+          "guideAspect": 0.82
+        },
+        {
+          "id": "back",
+          "label": "Back",
+          "position": [
+            0,
+            0.45,
+            -0.134
+          ],
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "size": [
+            0.2,
+            0.24,
+            0.08
+          ],
+          "guideAspect": 0.83
+        }
+      ],
+      "rackColor": "#ffffff",
+      "rack": {
+        "type": "hanger",
+        "fitHeight": 0.8,
+        "fitWidth": 0.9,
+        "frontSize": [
+          0.59,
+          0.7
+        ],
+        "hangerStyle": "wood",
+        "hangerZ": -0.026,
+        "hangerProfile": [
+          [
+            0,
+            0.655
+          ],
+          [
+            0.07,
+            0.652
+          ],
+          [
+            0.14,
+            0.636
+          ],
+          [
+            0.205,
+            0.613
+          ]
+        ],
+        "poster": {
+          "size": [
+            500,
+            500
+          ],
+          "content": [
+            38,
+            53,
+            424,
+            388
+          ]
+        }
+      }
+    },
+    "polo": {
+      "name": "Custom Polo Shirt",
+      "category": "tees_polos",
+      "glb": "assets/models/optimized/polo.glb",
+      "targetHeight": 0.7,
+      "frontRotation": 0,
+      "cameraDistance": 1.52,
+      "cameraTarget": [
+        0,
+        0.364,
+        0
+      ],
+      "modelScale": [
+        1,
+        1,
+        1
+      ],
+      "printZones": [
+        {
+          "id": "front",
+          "label": "Left chest",
+          "position": [
+            0.07,
+            0.45,
+            0.104
+          ],
+          "normal": [
+            0.28,
+            0.12,
+            0.95
+          ],
+          "size": [
+            0.08,
+            0.08,
+            0.08
+          ],
+          "guideAspect": 1.0
+        },
+        {
+          "id": "back",
+          "label": "Back",
+          "position": [
+            0,
+            0.43,
+            -0.158
+          ],
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "size": [
+            0.2,
+            0.24,
+            0.1
+          ],
+          "guideAspect": 0.83
+        }
+      ],
+      "rackColor": "#1f2a44",
+      "rack": {
+        "type": "hanger",
+        "fitHeight": 0.8,
+        "fitWidth": 0.9,
+        "frontSize": [
+          0.643,
+          0.7
+        ],
+        "hangerStyle": "wood",
+        "hangerZ": -0.045,
+        "hangerProfile": [
+          [
+            0,
+            0.64
+          ],
+          [
+            0.07,
+            0.637
+          ],
+          [
+            0.15,
+            0.618
+          ],
+          [
+            0.218,
+            0.588
+          ]
+        ],
+        "poster": {
+          "size": [
+            500,
+            500
+          ],
+          "content": [
+            35,
+            35,
+            430,
+            429
+          ]
+        }
+      }
+    },
+    "hoodie": {
+      "name": "Custom Pullover Hoodie",
+      "category": "hoodies",
+      "glb": "assets/models/hoodie.glb",
+      "targetHeight": 0.72,
+      "frontRotation": 0,
+      "cameraDistance": 1.7,
+      "cameraTarget": [
+        0,
+        0.4,
+        0
+      ],
+      "modelScale": [
+        1,
+        1,
+        1
+      ],
+      "printZones": [
+        {
+          "id": "front",
+          "label": "Front",
+          "position": [
+            0,
+            0.4,
+            0.155
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "size": [
+            0.25,
+            0.25,
+            0.2
+          ],
+          "guideAspect": 1.0
+        },
+        {
+          "id": "back",
+          "label": "Back",
+          "position": [
+            0,
+            0.35,
+            -0.135
+          ],
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "size": [
+            0.26,
+            0.2,
+            0.1
+          ],
+          "guideAspect": 1.0
+        }
+      ],
+      "rackColor": "#3a3d42",
+      "rack": {
+        "type": "hanger",
+        "fitHeight": 0.8,
+        "fitWidth": 0.9,
+        "frontSize": [
+          1.155,
+          0.72
+        ],
+        "hangerStyle": "wood",
+        "hangerZ": -0.03,
+        "hangerProfile": [
+          [
+            0,
+            0.62
+          ],
+          [
+            0.06,
+            0.615
+          ],
+          [
+            0.14,
+            0.58
+          ],
+          [
+            0.205,
+            0.54
+          ]
+        ],
+        "poster": {
+          "size": [
+            500,
+            500
+          ],
+          "content": [
+            44,
+            25,
+            412,
+            443
+          ]
+        }
+      }
+    },
+    "varsity": {
+      "name": "Custom Varsity Jacket",
+      "category": "jackets",
+      "glb": "assets/models/optimized/varsity_jacket.glb",
+      "targetHeight": 0.72,
+      "frontRotation": 0,
+      "cameraDistance": 1.54,
+      "cameraTarget": [
+        0,
+        0.374,
+        0
+      ],
+      "modelScale": [
+        1,
+        1,
+        1
+      ],
+      "printZones": [
+        {
+          "id": "front",
+          "label": "Left chest",
+          "position": [
+            0.08,
+            0.43,
+            0.119
+          ],
+          "normal": [
+            0.28,
+            0.05,
+            0.96
+          ],
+          "size": [
+            0.09,
+            0.09,
+            0.08
+          ],
+          "guideAspect": 1.0
+        },
+        {
+          "id": "back",
+          "label": "Back",
+          "position": [
+            0,
+            0.41,
+            -0.138
+          ],
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "size": [
+            0.22,
+            0.24,
+            0.1
+          ],
+          "guideAspect": 0.92
+        }
+      ],
+      "rackColor": "#1f2a44",
+      "fixedMaterialColors": {
+        "fabric_sleeves": "#f1ece0"
+      },
+      "rack": {
+        "type": "hanger",
+        "fitHeight": 0.8,
+        "fitWidth": 0.9,
+        "frontSize": [
+          0.662,
+          0.72
+        ],
+        "hangerStyle": "wood",
+        "hangerZ": -0.02,
+        "hangerProfile": [
+          [
+            0,
+            0.655
+          ],
+          [
+            0.075,
+            0.652
+          ],
+          [
+            0.16,
+            0.632
+          ],
+          [
+            0.232,
+            0.603
+          ]
+        ],
+        "poster": {
+          "size": [
+            500,
+            500
+          ],
+          "content": [
+            38,
+            42,
+            425,
+            411
+          ]
+        }
+      }
+    },
+    "cap": {
+      "name": "Custom Structured Cap",
+      "category": "caps_visors",
+      "glb": "assets/models/optimized/cap.glb",
+      "targetHeight": 0.18,
+      "frontRotation": 0,
+      "cameraDistance": 0.57,
+      "cameraTarget": [
+        0,
+        0.094,
+        0
+      ],
+      "modelScale": [
+        1,
+        1,
+        1
+      ],
+      "printZones": [
+        {
+          "id": "front",
+          "label": "Front",
+          "position": [
+            0,
+            0.133,
+            0.054
+          ],
+          "normal": [
+            0,
+            0.475,
+            0.88
+          ],
+          "size": [
+            0.09,
+            0.045,
+            0.06
+          ],
+          "guideAspect": 2.0
+        },
+        {
+          "id": "rear",
+          "label": "Rear",
+          "position": [
+            0,
+            0.078,
+            -0.151
+          ],
+          "normal": [
+            0,
+            0.18,
+            -0.984
+          ],
+          "size": [
+            0.08,
+            0.033,
+            0.05
+          ],
+          "guideAspect": 2.42
+        }
+      ],
+      "rackColor": "#1f2a44",
+      "rack": {
+        "type": "cord",
+        "clip": "ring",
+        "fitWidth": 0.6,
+        "level": 23,
+        "tilt": 9,
+        "attach": [
+          0,
+          0.18,
+          -0.034
+        ],
+        "frontSize": [
+          0.197,
+          0.19
+        ],
+        "frontTop": 0.1982,
+        "centerY": 0.1033,
+        "poster": {
+          "size": [
+            500,
+            500
+          ],
+          "content": [
+            84,
+            112,
+            332,
+            278
+          ]
+        }
+      }
+    },
+    "visor": {
+      "name": "Custom Sports Visor",
+      "category": "caps_visors",
+      "glb": "assets/models/optimized/visor.glb",
+      "targetHeight": 0.08,
+      "frontRotation": 0,
+      "cameraDistance": 0.56,
+      "cameraTarget": [
+        0,
+        0.042,
+        0
+      ],
+      "modelScale": [
+        1,
+        1,
+        1
+      ],
+      "printZones": [
+        {
+          "id": "front",
+          "label": "Front",
+          "position": [
+            0,
+            0.0556,
+            0.059
+          ],
+          "normal": [
+            0,
+            0.14,
+            0.99
+          ],
+          "size": [
+            0.089,
+            0.031,
+            0.03
+          ],
+          "guideAspect": 2.87
+        }
+      ],
+      "rackColor": "#87ceeb",
+      "rack": {
+        "type": "cord",
+        "clip": "clip",
+        "fitWidth": 0.6,
+        "level": 0,
+        "tilt": 12,
+        "attach": [
+          0,
+          0.08,
+          0.055
+        ],
+        "frontSize": [
+          0.202,
+          0.112
+        ],
+        "frontTop": 0.1023,
+        "centerY": 0.0463,
+        "poster": {
+          "size": [
+            500,
+            500
+          ],
+          "content": [
+            66,
+            130,
+            369,
+            239
+          ]
+        }
+      }
+    },
+    "bag": {
+      "name": "Custom Canvas Tote Bag",
+      "category": "bags",
+      "glb": "assets/models/optimized/tote-bag.glb",
+      "targetHeight": 0.54,
+      "frontRotation": 0,
+      "cameraDistance": 1.03,
+      "cameraTarget": [
+        0,
+        0.28,
+        0
+      ],
+      "modelScale": [
+        1,
+        1,
+        1
+      ],
+      "printZones": [
+        {
+          "id": "front",
+          "label": "Front",
+          "position": [
+            0,
+            0.181,
+            0.068
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "size": [
+            0.24,
+            0.24,
+            0.05
+          ],
+          "guideAspect": 1.0
+        },
+        {
+          "id": "back",
+          "label": "Back",
+          "position": [
+            0,
+            0.181,
+            -0.068
+          ],
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "size": [
+            0.24,
+            0.24,
+            0.05
+          ],
+          "guideAspect": 1.0
+        }
+      ],
+      "rackColor": "#e8dcc4",
+      "rack": {
+        "type": "cord",
+        "clip": "hook",
+        "fitHeight": 0.58,
+        "level": 0,
+        "tilt": 0,
+        "gatherHandles": true,
+        "attach": [
+          0,
+          0.54,
+          0
+        ],
+        "frontSize": [
+          0.382,
+          0.54
+        ],
+        "frontTop": 0.54,
+        "centerY": 0.171,
+        "poster": {
+          "size": [
+            500,
+            500
+          ],
+          "content": [
+            144,
+            36,
+            210,
+            401
+          ]
+        }
+      }
+    }
+  }
+}
