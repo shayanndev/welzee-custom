@@ -1,0 +1,161 @@
+/* assets/css/3d.css
+ * Styling for Welzee 3D Apparel Customizer & Hanging Rack
+ */
+
+/* Responsive 3D Viewport */
+.viewport-3d-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 480px;
+    height: 580px;
+    background: radial-gradient(circle at 50% 40%, #ffffff 0%, #f1f5f9 60%, #e2e8f0 100%);
+    border-radius: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    touch-action: pan-y; /* Crucial: allows vertical scrolling past viewport on mobile! */
+}
+
+@media (max-width: 640px) {
+    .viewport-3d-wrapper {
+        min-height: 380px;
+        height: 420px;
+    }
+}
+
+/* 3D Viewport Hint Overlay */
+.viewport-hint {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    color: #ffffff;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    pointer-events: none;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+    transition: opacity 0.3s ease;
+}
+
+/* Visible 2D Artwork Editor Panel */
+.artwork-editor-wrapper {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    margin-top: 1.25rem;
+    width: 100%;
+}
+
+.artwork-canvas-container {
+    position: relative;
+    margin: 0 auto;
+    border: 2px dashed #cbd5e1;
+    border-radius: 0.75rem;
+    background-color: #f8fafc;
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 16px 16px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Subtle print guide border */
+.artwork-guide-boundary {
+    position: absolute;
+    inset: 16px;
+    border: 1px dashed rgba(34, 197, 94, 0.6);
+    border-radius: 8px;
+    pointer-events: none;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 6px;
+}
+
+.artwork-guide-boundary span {
+    font-size: 10px;
+    font-weight: 700;
+    color: #16a34a;
+    background: #dcfce7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Fallback Card */
+.webgl-fallback-card {
+    background: #fff;
+    border: 1px solid #fee2e2;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+/* Page Header & Sticky Nav Spacing */
+.customizer-3d-container {
+    scroll-margin-top: 5.5rem;
+}
+
+@media (max-width: 640px) {
+    .customizer-3d-header {
+        padding-top: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .customizer-3d-header h1 {
+        font-size: 1.75rem;
+        line-height: 2.25rem;
+    }
+}
+
+/* Print side switch (Front | Back / Front | Rear) above the artwork editor */
+.side-switch {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 10px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 9999px;
+}
+.side-switch:empty { display: none; }
+.side-switch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 76px;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #4b5563;
+    background: transparent;
+    transition: background-color .15s, color .15s, box-shadow .15s;
+}
+.side-switch-btn:hover { color: #111827; }
+.side-switch-btn:focus-visible { outline: 2px solid #22c55e; outline-offset: 2px; }
+.side-switch-btn.active {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .12);
+}
+.side-switch-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: transparent;
+}
+.side-switch-btn.has-art .side-switch-dot { background: #22c55e; }
+.side-switch.single .side-switch-btn { cursor: default; }

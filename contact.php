@@ -163,7 +163,7 @@ include __DIR__ . '/includes/header.php';
                     <i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Looking for an exact quotation?
                 </h3>
                 <p class="text-gray-600 text-sm mb-4 leading-relaxed">If you have your logo artwork ready, use our interactive apparel customizer to choose your garment, position your logo, and request an itemized quotation in under 2 minutes.</p>
-                <a href="<?php echo $base_url; ?>custom_order" class="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl transition inline-flex items-center gap-2 shadow-sm text-sm">
+                <a href="<?php echo $base_url, welzee_customizer_href(); ?>" class="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl transition inline-flex items-center gap-2 shadow-sm text-sm">
                     Open Apparel Customizer <i class="fa-solid fa-arrow-right text-xs"></i>
                 </a>
             </div>
@@ -251,7 +251,7 @@ include __DIR__ . '/includes/header.php';
                 <a href="https://wa.me/923205993161" target="_blank" rel="noopener noreferrer" class="bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-6 rounded-xl transition shadow-md flex items-center justify-center gap-2 text-sm">
                     <i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp Direct
                 </a>
-                <a href="<?php echo $base_url; ?>custom_order" class="bg-secondary hover:bg-black text-white font-bold py-3.5 px-6 rounded-xl transition shadow-md flex items-center justify-center gap-2 text-sm">
+                <a href="<?php echo $base_url, welzee_customizer_href(); ?>" class="bg-secondary hover:bg-black text-white font-bold py-3.5 px-6 rounded-xl transition shadow-md flex items-center justify-center gap-2 text-sm">
                     <i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Request a Quote
                 </a>
             </div>

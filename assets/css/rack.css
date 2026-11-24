@@ -1,0 +1,260 @@
+/* assets/css/rack.css — Hanging-rack showcase (rack.php only)
+ *
+ * Geometry shared with assets/js/3d/rack.js (keep in sync):
+ *  - each slot = 14px top padding + hanging area (--hang-h) + label (--label-h)
+ *  - the rail centre is --rail-above px above every hanging area
+ *  - garments: top at --gtop of the hanging area; cord items: visual centre on --dl
+ *  - item box height = min(fitH * areaH, fitW * areaW * h/w)   (per-slot vars from rack.php)
+ */
+
+.rack-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 16px 64px;
+}
+
+.rack-intro { text-align: center; margin-bottom: 28px; }
+.rack-kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 12px; border-radius: 9999px;
+    font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0;
+}
+.rack-intro h1 {
+    margin: 12px 0 6px;
+    font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: -0.02em; color: #111827;
+}
+.rack-howto { color: #6b7280; font-size: 15px; }
+.rack-howto-touch { display: none; }
+@media (hover: none) {
+    .rack-howto-mouse { display: none; }
+    .rack-howto-touch { display: inline; }
+}
+
+/* ---------- Rack + rails ---------- */
+
+.rack {
+    --hang-h: clamp(190px, 46vw, 300px);
+    --label-h: 52px;
+    --row-gap: 22px;
+    --slot-pad: 14px;
+    --rail-above: 5.5px;          /* rail centre above each hanging area (read by rack.js) */
+    --wire: #3f4650;
+    --cord: #6b5b4b;
+    position: relative;
+    border-radius: 24px;
+    padding: 18px 8px 24px;
+    background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+@media (min-width: 640px) { .rack { --hang-h: clamp(220px, 26vw, 300px); } }
+
+/* One shared WebGL canvas over the whole rack; links stay clickable through it */
+.rack-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity .4s ease;
+}
+.rack.is-3d-live .rack-canvas { opacity: 1; }
+
+/* Rows: flex so a partial last row is centred. Every row has the same height, so one
+   repeating background draws a full-width chrome rail per row (all rows share it). */
+.rack-grid {
+    --period: calc(var(--slot-pad) + var(--hang-h) + 6px + var(--label-h) + var(--row-gap));
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap; justify-content: center;
+    row-gap: var(--row-gap);
+    background-image: repeating-linear-gradient(180deg,
+        transparent 0, transparent 5px,
+        #e5e7eb 5px, #b6bcc6 8px, #6b7280 12px,
+        rgba(0, 0, 0, .10) 12px, transparent 14px,
+        transparent var(--period));
+}
+
+.rack-slot { position: relative; flex: 0 0 50%; max-width: 50%; padding-top: var(--slot-pad); }
+@media (min-width: 640px)  { .rack-slot { flex-basis: 33.3333%; max-width: 33.3333%; } }
+@media (min-width: 1024px) { .rack-slot { flex-basis: 25%; max-width: 25%; } }
+
+.rack-item {
+    position: relative; z-index: 3;          /* above the canvas: receives hover/tap */
+    display: flex; flex-direction: column; align-items: center;
+    text-decoration: none; color: inherit;
+    border-radius: 16px;
+    -webkit-tap-highlight-color: transparent;
+}
+.rack-item:focus-visible { outline: 3px solid #22c55e; outline-offset: 2px; }
+
+/* Hanging area: the rail point is at its top centre; this is what swings in poster mode */
+.rack-hang {
+    position: relative; display: block;
+    width: 100%;
+    height: var(--hang-h);
+    transform-origin: 50% calc(-1 * var(--rail-above));
+}
+
+/* Item box: same size/position maths as rack.js (fallback assumes a square slot) */
+.rack-slot { --fig-h: calc(var(--fbh) * var(--hang-h)); }
+@supports (container-type: size) {
+    .rack-hang { container-type: size; }
+    .rack-slot { --fig-h: min(calc(var(--fit-h) * 100cqh), calc(var(--fit-w) * var(--hw) * 100cqw)); }
+}
+
+.rack-figure {
+    position: absolute; left: 50%;
+    height: var(--fig-h);
+    aspect-ratio: var(--ar);
+    pointer-events: none;
+}
+.rack-slot--hanger .rack-figure { top: calc(var(--gtop) * 100%); transform: translateX(-50%); }
+.rack-slot--cord .rack-figure { top: calc(var(--dl) * 100%); transform: translate(-50%, calc(-100% * var(--vc))); }
+
+.rack-poster {
+    position: absolute; left: 0; top: 0;
+    width: 100%; height: 100%;               /* overridden per image by rack.php (content crop) */
+    max-width: none;
+    object-fit: contain;
+    filter: drop-shadow(4px 10px 10px rgba(0, 0, 0, .13));
+}
+
+/* Poster-mode hardware, drawn where the 3D hook / cord will be */
+.rack-hook, .rack-cord {
+    position: absolute; left: 50%;
+    top: calc(-1 * var(--rail-above) - 5px);
+    transform: translateX(-50%);
+    border-radius: 2px;
+    z-index: 1;
+    pointer-events: none;
+}
+.rack-hook {                              /* rail -> hanger centre inside the collar */
+    width: 2.6px; background: var(--wire);
+    height: calc(var(--rail-above) + 5px + var(--gtop) * var(--hang-h) + var(--hook-in) * var(--fig-h));
+}
+.rack-cord {                              /* rail -> clip; clip above the visual centre */
+    width: 1.8px; background: var(--cord);
+    height: calc(var(--rail-above) + 5px + var(--dl) * var(--hang-h) - (var(--vc) - var(--att)) * var(--fig-h));
+}
+.rack-cord::after {                       /* small ring / clip at the end of the cord */
+    content: ""; position: absolute; left: 50%; bottom: -5px;
+    width: 8px; height: 8px; border: 1.6px solid var(--wire); border-radius: 50%;
+    transform: translateX(-50%);
+}
+
+.rack-label {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px;
+    height: var(--label-h); overflow: hidden;    /* fixed: same label baseline on every row */
+    margin-top: 6px; padding: 0 6px; text-align: center;
+    position: relative; z-index: 3;
+}
+.rack-name {
+    font-size: 14px; font-weight: 700; color: #111827; line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.rack-cta { font-size: 12px; font-weight: 600; color: #15803d; }
+.rack-cta-armed { display: none; }
+.rack-item.is-armed .rack-cta-default { display: none; }
+.rack-item.is-armed .rack-cta-armed { display: inline; }
+
+/* ---------- Poster mode: CSS-only damped swing from the rail (2-3 oscillations) ---------- */
+
+@keyframes rack-swing {
+    0%   { transform: rotate(0deg); }
+    12%  { transform: rotate(5deg); }
+    30%  { transform: rotate(-3.6deg); }
+    48%  { transform: rotate(2.4deg); }
+    64%  { transform: rotate(-1.4deg); }
+    80%  { transform: rotate(.6deg); }
+    100% { transform: rotate(0deg); }
+}
+@keyframes rack-swing-soft {
+    0%   { transform: rotate(0deg); }
+    20%  { transform: rotate(2deg); }
+    50%  { transform: rotate(-1.2deg); }
+    75%  { transform: rotate(.5deg); }
+    100% { transform: rotate(0deg); }
+}
+@media (hover: hover) {
+    .rack-slot:not(.is-3d) .rack-item:hover .rack-hang { animation: rack-swing 2.6s ease-out; }
+}
+.rack-slot:not(.is-3d) .rack-item:focus-visible .rack-hang,
+.rack-slot:not(.is-3d) .rack-item.is-poked .rack-hang { animation: rack-swing 2.6s ease-out; }
+
+/* Reduced motion: only a small, user-triggered swing */
+.rack.is-reduced .rack-slot:not(.is-3d) .rack-item:hover .rack-hang,
+.rack.is-reduced .rack-slot:not(.is-3d) .rack-item:focus-visible .rack-hang,
+.rack.is-reduced .rack-slot:not(.is-3d) .rack-item.is-poked .rack-hang { animation: rack-swing-soft 1.6s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+    .rack-slot:not(.is-3d) .rack-item:hover .rack-hang,
+    .rack-slot:not(.is-3d) .rack-item:focus-visible .rack-hang,
+    .rack-slot:not(.is-3d) .rack-item.is-poked .rack-hang { animation: rack-swing-soft 1.6s ease-out; }
+}
+
+/* ---------- 3D mode: a slot whose model is live hides its poster + CSS hook/cord ---------- */
+
+.rack-figure, .rack-hook, .rack-cord { transition: opacity .35s ease; }
+.rack-slot.is-3d .rack-figure,
+.rack-slot.is-3d .rack-hook,
+.rack-slot.is-3d .rack-cord { opacity: 0; }
+
+/* "Explore in 3D" (low-spec / reduced-motion devices) */
+.rack-explore {
+    position: absolute; left: 50%; top: 14px; transform: translateX(-50%);
+    z-index: 4;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 9999px; border: 0;
+    font-size: 14px; font-weight: 700; color: #fff;
+    background: #16a34a; box-shadow: 0 6px 16px rgba(22, 163, 74, .35);
+    cursor: pointer;
+}
+.rack-explore:hover { background: #15803d; }
+.rack-explore:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
+.rack-explore[hidden] { display: none; }
+
+/* ---------- Debug view (rack.php?debug=1 only) ---------- */
+
+.rack.is-debug .rack-slot { outline: 1px dashed rgba(37, 99, 235, .55); outline-offset: -1px; }
+.rack.is-debug .rack-hang { outline: 1px solid rgba(37, 99, 235, .35); }
+.rack.is-debug .rack-figure { outline: 1px solid rgba(219, 39, 119, .7); }
+.rack.is-debug .rack-hang::before,
+.rack.is-debug .rack-hang::after {
+    content: ""; position: absolute; left: 0; right: 0; height: 0; z-index: 5; pointer-events: none;
+}
+.rack.is-debug .rack-hang::before {       /* garment top line */
+    top: calc(var(--gtop) * 100%); border-top: 1px dotted #f59e0b;
+}
+.rack.is-debug .rack-hang::after {        /* display line */
+    top: calc(var(--dl) * 100%); border-top: 1px dashed #16a34a;
+}
+.rack.is-debug .rack-slot::after {        /* hook pivot on the rail */
+    content: ""; position: absolute; left: 50%; z-index: 5;
+    top: calc(var(--slot-pad) - var(--rail-above) - 3px);
+    width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: #dc2626;
+}
+.rack.is-debug .rack-grid { box-shadow: inset 0 0 0 1px rgba(107, 114, 128, .4); }
+
+/* ---------- Classic view (photo rack) + slow-load banner ---------- */
+
+.rack.is-classic .rack-canvas { display: none; }
+.rack-classic-note { margin-top: 6px; font-size: 13px; color: #6b7280; }
+.rack-classic-note [hidden] { display: none; }
+.rack-linkbtn {
+    background: none; border: 0; padding: 0; cursor: pointer;
+    font: inherit; font-weight: 600; color: #15803d; text-decoration: underline;
+}
+.rack-linkbtn:hover { color: #166534; }
+.rack-linkbtn:focus-visible { outline: 2px solid #22c55e; outline-offset: 2px; border-radius: 4px; }
+.rack-slow {
+    position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 4;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, .96); border: 1px solid #fde68a;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+    font-size: 14px; color: #374151;
+}
+.rack-slow .fa-hourglass-half { color: #f59e0b; }
+.rack-slow[hidden] { display: none; }
+.rack-slow-close { background: none; border: 0; font-size: 20px; line-height: 1; color: #9ca3af; cursor: pointer; padding: 0 4px; }
+.rack-slow-close:hover { color: #4b5563; }

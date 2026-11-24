@@ -21,7 +21,7 @@ include __DIR__ . '/includes/header.php';
         <a href="<?php echo e($base_url); ?>" class="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-xl transition shadow-md">
             Visit Homepage
         </a>
-        <a href="<?php echo e($base_url); ?>custom_order" class="bg-white border border-gray-200 text-secondary font-bold py-3 px-8 rounded-xl hover:bg-gray-50 transition shadow-sm">
+        <a href="<?php echo e($base_url), welzee_customizer_href(); ?>" class="bg-white border border-gray-200 text-secondary font-bold py-3 px-8 rounded-xl hover:bg-gray-50 transition shadow-sm">
             Design Custom Apparel
         </a>
         <a href="<?php echo e($base_url); ?>services" class="bg-secondary hover:bg-black text-white font-bold py-3 px-8 rounded-xl transition shadow-md">

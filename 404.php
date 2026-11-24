@@ -14,7 +14,7 @@ include __DIR__ . '/includes/header.php';
     <p class="text-lg text-gray-500 mb-10">The page you are looking for doesn't exist or has been moved.</p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a href="<?php echo e($base_url); ?>" class="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-xl transition">Back to Home</a>
-        <a href="<?php echo e($base_url); ?>custom_order" class="bg-white border border-gray-200 text-secondary font-bold py-3 px-8 rounded-xl hover:bg-gray-50 transition">Design Your Own</a>
+        <a href="<?php echo e($base_url), welzee_customizer_href(); ?>" class="bg-white border border-gray-200 text-secondary font-bold py-3 px-8 rounded-xl hover:bg-gray-50 transition">Design Your Own</a>
     </div>
 </div>
 

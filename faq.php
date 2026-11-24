@@ -17,7 +17,7 @@ $faqSections = [
                 'q' => 'How does the custom apparel quotation and ordering process work?',
                 'a' => 'Our ordering process is quotation-based:
 <ol class="list-decimal pl-5 mt-2 space-y-1.5">
-    <li><strong>Submit Your Requirements:</strong> Use our <a href="' . $base_url . 'custom_order" class="text-primary font-semibold hover:underline">online customizer</a> or <a href="' . $base_url . 'contact" class="text-primary font-semibold hover:underline">contact form</a> to upload your logo and specify your garment type, quantities, and placement preferences.</li>
+    <li><strong>Submit Your Requirements:</strong> Use our <a href="' . $base_url . welzee_customizer_href() . '" class="text-primary font-semibold hover:underline">online customizer</a> or <a href="' . $base_url . 'contact" class="text-primary font-semibold hover:underline">contact form</a> to upload your logo and specify your garment type, quantities, and placement preferences.</li>
     <li><strong>Receive Digital Mockup & Quote:</strong> Our team reviews your artwork and emails an itemized quotation with an estimated production schedule and digital visual preview.</li>
     <li><strong>Review & Approve:</strong> You verify the thread colors, sizing, stitch placement, and quote details.</li>
     <li><strong>Production & Dispatch:</strong> Once approved and deposit cleared, your apparel is stitched or printed at our Karachi workshop and dispatched with door-to-door tracking.</li>
@@ -251,7 +251,7 @@ include __DIR__ . '/includes/header.php';
         <h3 class="text-2xl sm:text-3xl font-extrabold mb-3">Have a specific custom project in mind?</h3>
         <p class="text-gray-300 text-sm sm:text-base max-w-xl mx-auto mb-8">Send your logo artwork and project details through our interactive customizer, or speak directly with our team on WhatsApp.</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="<?php echo $base_url; ?>custom_order" class="bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-8 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+            <a href="<?php echo $base_url, welzee_customizer_href(); ?>" class="bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-8 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> Open Customizer
             </a>
             <a href="https://wa.me/923205993161" target="_blank" rel="noopener noreferrer" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold py-3.5 px-8 rounded-xl transition flex items-center justify-center gap-2">

@@ -94,7 +94,7 @@ include __DIR__ . '/includes/header.php';
         <p class="text-xl text-primary-light max-w-3xl mx-auto mb-10 font-medium leading-relaxed">
             Every stitched logo and printed graphic undergoes manual visual inspection before shipping. If an order has an objective manufacturing flaw that deviates from your approved proof, we replace it free of charge.
         </p>
-        <a href="<?php echo $base_url; ?>custom_order" class="bg-white text-primary font-bold py-4 px-10 rounded-full transition shadow-lg hover:shadow-xl text-lg inline-block transform hover:-translate-y-1">
+        <a href="<?php echo $base_url, welzee_customizer_href(); ?>" class="bg-white text-primary font-bold py-4 px-10 rounded-full transition shadow-lg hover:shadow-xl text-lg inline-block transform hover:-translate-y-1">
             Design Custom Apparel
         </a>
     </div>

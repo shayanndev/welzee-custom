@@ -151,7 +151,7 @@ include __DIR__ . '/includes/header.php';
                         <span class="text-gray-200 font-medium">Ideal for structured fabrics and heavier garments</span>
                     </li>
                 </ul>
-                <a href="<?php echo $base_url; ?>custom_order" class="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-light transition text-lg border-b-2 border-primary pb-1">
+                <a href="<?php echo $base_url, welzee_customizer_href(); ?>" class="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-light transition text-lg border-b-2 border-primary pb-1">
                     Design Embroidery <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
@@ -185,7 +185,7 @@ include __DIR__ . '/includes/header.php';
                         <span class="text-gray-200 font-medium">Cost-effective for very large volumes</span>
                     </li>
                 </ul>
-                <a href="<?php echo $base_url; ?>custom_order" class="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-light transition text-lg border-b-2 border-primary pb-1">
+                <a href="<?php echo $base_url, welzee_customizer_href(); ?>" class="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-light transition text-lg border-b-2 border-primary pb-1">
                     Design Print <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>

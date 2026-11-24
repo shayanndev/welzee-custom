@@ -30,7 +30,7 @@ include __DIR__ . '/includes/header.php';
             stitched or printed according to your exact specifications.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <a href="custom_order"
+            <a href="<?php echo welzee_customizer_href(); ?>"
                 class="bg-primary hover:bg-primary-dark text-white font-bold py-4 px-8 rounded-xl transition shadow-xl shadow-primary/20 text-lg flex items-center justify-center gap-2 transform hover:-translate-y-1">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> Design Your Own
             </a>
@@ -38,6 +38,12 @@ include __DIR__ . '/includes/header.php';
                 class="bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold py-4 px-8 rounded-xl transition text-lg flex items-center justify-center">
                 Explore Services
             </a>
+<?php if (welzee_use_3d()): ?>
+            <a href="rack.php"
+                class="bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold py-4 px-8 rounded-xl transition text-lg flex items-center justify-center gap-2">
+                <i class="fa-solid fa-shirt"></i> Browse the 3D Rack
+            </a>
+<?php endif; ?>
         </div>
 
         <!-- Trust indicators -->
@@ -103,7 +109,7 @@ include __DIR__ . '/includes/header.php';
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- T-Shirts -->
-            <a href="custom_order?category=tshirt"
+            <a href="<?php echo welzee_customizer_href('tshirt'); ?>"
                 class="group block relative rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition duration-500 bg-white">
                 <div class="aspect-w-3 aspect-h-4 bg-gray-100 overflow-hidden">
                     <img src="assets/images/tshirt1.jpg" alt="T-Shirts"
@@ -125,7 +131,7 @@ include __DIR__ . '/includes/header.php';
             </a>
 
             <!-- Polos -->
-            <a href="custom_order?category=polo"
+            <a href="<?php echo welzee_customizer_href('polo'); ?>"
                 class="group block relative rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition duration-500 bg-white">
                 <div class="aspect-w-3 aspect-h-4 bg-gray-100 overflow-hidden">
                     <img src="assets/images/poloshirt1.jpg" alt="Polo Shirts"
@@ -147,7 +153,7 @@ include __DIR__ . '/includes/header.php';
             </a>
 
             <!-- Hoodies -->
-            <a href="custom_order?category=hoodie"
+            <a href="<?php echo welzee_customizer_href('hoodie'); ?>"
                 class="group block relative rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition duration-500 bg-white">
                 <div class="aspect-w-3 aspect-h-4 bg-gray-100 overflow-hidden">
                     <img src="assets/images/hoodie1.jpg" alt="Hoodies"
@@ -169,7 +175,7 @@ include __DIR__ . '/includes/header.php';
             </a>
 
             <!-- Hats & Caps -->
-            <a href="custom_order?category=cap"
+            <a href="<?php echo welzee_customizer_href('cap'); ?>"
                 class="group block relative rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition duration-500 bg-white">
                 <div class="aspect-w-3 aspect-h-4 bg-gray-100 overflow-hidden">
                     <img src="assets/images/capwear.jpg" alt="Headwear"
@@ -192,7 +198,7 @@ include __DIR__ . '/includes/header.php';
         </div>
         <p class="text-xs text-gray-400 mt-6 text-center">Indicative starting prices for customized blanks. Final quotes depend on order volume, stitch density, and printing specifications.</p>
         <div class="mt-16 text-center">
-            <a href="custom_order"
+            <a href="<?php echo welzee_customizer_href(); ?>"
                 class="inline-flex items-center gap-2 text-secondary font-bold hover:text-primary transition group border-b-2 border-transparent hover:border-primary pb-1 text-lg">
                 View Full Catalog <i class="fa-solid fa-arrow-right transform group-hover:translate-x-1 transition"></i>
             </a>
@@ -279,7 +285,7 @@ include __DIR__ . '/includes/header.php';
             look?</h2>
         <p class="text-xl text-secondary mb-10 font-medium max-w-2xl mx-auto">Use our online designer to upload your
             logo, choose your products, and request a custom, no-obligation quote in under 2 minutes.</p>
-        <a href="custom_order"
+        <a href="<?php echo welzee_customizer_href(); ?>"
             class="bg-secondary hover:bg-black text-white font-bold py-5 px-10 rounded-2xl transition shadow-xl text-lg inline-flex items-center gap-3 transform hover:-translate-y-1">
             <i class="fa-solid fa-shirt"></i> Start Designing Now
         </a>
