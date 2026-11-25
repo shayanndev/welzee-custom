@@ -9,11 +9,16 @@
     "displayLine": 0.47
   },
   "showroom": {
-    "comment": "Showroom wall (showroom.php / assets/js/3d/showroom.js). Section order, labels, products and colour sets; layout, camera and lighting defaults live at the top of showroom.js and can be overridden here with the same keys.",
+    "comment": "Showroom wall (showroom.php / assets/js/3d/showroom.js). Section order, labels, products and colour sets. productScale = display size per product (1 = real size). Layout, framing, camera, lighting and tour defaults live at the top of showroom.js and can be overridden here with the same keys.",
+    "productScale": {
+      "cap": 1.7,
+      "visor": 1.7,
+      "bag": 1.15
+    },
     "sections": [
       {
         "id": "tees",
-        "label": "T-Shirts",
+        "label": "Tees & Polos",
         "items": [
           {
             "product": "tshirt",
@@ -47,7 +52,12 @@
               "#3a3d42",
               "#121316",
               "#c8b79a",
-              "#556b2f"
+              "#556b2f",
+              "#1f2a44",
+              "#6b1d2a",
+              "#9ca3af",
+              "#14532d",
+              "#f4f4f2"
             ]
           }
         ]
@@ -63,7 +73,11 @@
               "#15171a",
               "#6b1d2a",
               "#14532d",
-              "#1d4ed8"
+              "#1d4ed8",
+              "#b91c1c",
+              "#3a3d42",
+              "#556b2f",
+              "#5b2a86"
             ]
           }
         ]
@@ -105,7 +119,12 @@
               "#e8dcc4",
               "#15171a",
               "#1f2a44",
-              "#556b2f"
+              "#556b2f",
+              "#b91c1c",
+              "#6b1d2a",
+              "#c8b79a",
+              "#14532d",
+              "#7cb9e8"
             ]
           }
         ]
@@ -129,7 +148,8 @@
       "#556b2f": "Olive",
       "#c3b091": "Khaki",
       "#e8a0b4": "Pink",
-      "#e8dcc4": "Natural"
+      "#e8dcc4": "Natural",
+      "#5b2a86": "Purple"
     }
   },
   "products": {

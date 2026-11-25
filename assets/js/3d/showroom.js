@@ -2,23 +2,35 @@
  * assets/js/3d/showroom.js
  *
  * Boutique showroom wall: dark stage, spotlights, one rail across the whole width,
- * products hanging in labelled sections. Drag / swipe / scroll sideways: the camera
- * slides along the wall with inertia. Hover or tap swings a piece and turns it to
- * the back; click or double-tap pulls it toward the camera and opens a slim panel.
- * Intro: glass cupboard doors open by themselves (already open for reduced motion).
+ * products hanging in labelled sections. Drag / swipe / sideways scroll: the camera
+ * slides along the wall with inertia and settles on a piece edge. Hover or tap swings
+ * a piece and turns it to the back; click or double-tap pulls it toward the camera
+ * and opens a slim panel. Intro: glass cupboard doors open by themselves (already
+ * open for reduced motion), then an optional slow "tour" drifts along the wall until
+ * the visitor touches, hovers or scrolls (for screen recordings; off with tour:false).
  *
  * Page independent: `mountShowroom(container, options)` builds its own canvas, panel,
- * section buttons and styles inside `container` (give it a size), so the same module
- * can be dropped into the home page hero later.
+ * section buttons and styles inside `container` (give it a size). The page keeps its
+ * own overlay text and tells the module which area it covers (options.insets), so
+ * the same module can become the home page hero without changes.
+ *
+ * Framing is computed from the container size (computeFrame): garments fill about
+ * CONFIG.frame.fill of the stage height with their centre line at frame.centerLine;
+ * narrow screens zoom out so frame.minAcross pieces fit across.
  *
  * Performance: ONE renderer; every product is loaded once and all its colour copies
- * share that geometry through InstancedMesh (per-instance colour + matrix), so the
- * whole wall is about 30 draw calls. Renders on demand, pauses off screen / hidden,
- * pixel ratio capped (CONFIG.maxDpr).
+ * share that geometry through InstancedMesh (per-instance colour + matrix). Only the
+ * copies near the view are packed into the draw (cull()), so off-screen copies cost
+ * nothing. Renders on demand, pauses off screen / hidden, pixel ratio capped.
+ *
+ * Events on `container`: showroom:interact (first drag / tap / scroll / key),
+ * showroom:pull {product, color}, showroom:release, showroom:section {id, label},
+ * showroom:tour {on}.
  *
  * Sections, products and colours: models.manifest.json "showroom" block.
- * Layout, camera, lighting, intro: SHOWROOM_CONFIG below (manifest "showroom" may
- * override any of these keys). Hanger / cord / swing logic is the same as rack.js.
+ * Layout, framing, camera, lighting, intro, tour: SHOWROOM_CONFIG below (the manifest
+ * "showroom" block may override any of these keys). Hanger / cord / swing logic is
+ * the same as rack.js.
  */
 
 import * as THREE from 'three';
@@ -30,33 +42,44 @@ import { createProceduralProduct } from './procedural.js';
 export const SHOWROOM_CONFIG = {
     maxDpr: 1.5,
     layout: {
-        railY: 1.85,          // rail height (m)
+        centerY: 0.5,         // product centre line, metres above the floor (garments hang just above it)
+        railDrop: 0.42,       // rail sits this far above the centre line (m)
         railZ: 0.32,          // rail distance in front of the wall (m)
         hookLength: 0.12,     // garment hanger: rail -> hanger centre (m)
-        displayY: 1.33,       // cord items (caps, visors, bags): visual centre height (m)
-        pieceGap: 0.14,       // space between pieces (m)
-        sectionGap: 0.8,      // extra space between sections (m)
-        labelY: 2.27,         // section label height on the wall (m)
-        labelHeight: 0.13,    // label text height (m)
-        endPadding: 1.0,      // wall beyond the first / last piece (m)
-        idleYaw: 0.12         // alternating slight turn, like a real rail (rad)
+        pieceGap: 0.07,       // space between neighbours (m); never negative = no overlap
+        sectionGap: 0.9,      // extra space between sections (m)
+        endPadding: 0.9,      // wall beyond the first / last piece (m)
+        idleYaw: 0.1,         // alternating slight turn, like a real rail (rad)
+        sizeJitter: 0.04,     // gentle size variation per copy (+/- 4 %)
+        labelScale: 0.024,    // section title font size: fraction of the stage height ...
+        labelMinPx: 13,       // ... clamped to this range (px)
+        labelMaxPx: 22,
+        labelGapPx: 8         // space between the rail and the title (px)
+    },
+    productScale: {           // display size per product (1 = real size)
+        cap: 1.7, visor: 1.7, bag: 1.15
+    },
+    frame: {
+        fill: 0.57,           // tallest garment / stage height
+        centerLine: 0.52,     // product centre line, fraction of the stage height from the top
+        minAcross: 2.5,       // at least this many garments across the screen (phones)
+        pitch: 7,             // camera looks down this many degrees (shows the floor glow)
+        edgePad: 0.045,       // padding before the first piece, fraction of the view width
+        topMarginPx: 10       // min space between the page overlay (insets.top) and a title
     },
     camera: {
-        fov: 40,
-        distance: 3.6,        // from the rail (m)
-        height: 1.75,
-        lookY: 1.25,
+        fov: 34,
         dragSpeed: 1.0,       // 1 = wall follows the finger exactly
         friction: 4.2,        // inertia decay per second (higher = stops sooner)
         maxSpeed: 9,          // m/s
         wheelSpeed: 0.0022,   // m per wheel delta unit
-        wheelVertical: true,  // vertical wheel moves the wall (released at both ends)
-        keyStep: 0.9,         // m per arrow key
-        presentFill: 0.6      // pulled piece: fraction of the view height
+        wheelVertical: false, // full-height hero: vertical wheel scrolls the page
+        presentFill: 0.6,     // pulled piece: fraction of the view height
+        snap: true            // settle so a piece edge sits at the padded left edge
     },
     lighting: {
         background: '#0b0c0f',
-        fog: [4.5, 13],
+        fog: [0.8, 9],        // fog start / end, metres beyond the rail
         exposure: 1.05,
         hemi: 0.55,
         key: 1.9,
@@ -65,16 +88,24 @@ export const SHOWROOM_CONFIG = {
         wall: '#262a31',
         floor: '#2a2b2f',
         spotColor: '#ffe7c2',
-        spotSpacing: 1.6,     // one spotlight every n metres
+        spotSpacing: 1.3,     // one spotlight every n metres
         beamOpacity: 0.07,
         wallPoolOpacity: 0.5,
-        floorPoolOpacity: 0.35,
+        floorPoolOpacity: 0.55,
+        floorPoolZ: 0.2,      // contact glow: distance in front of the wall (m)
         shadowOpacity: 0.45
     },
     intro: {
         delay: 1000,          // doors open by themselves after this (ms)
         duration: 1500,       // door opening time (ms)
-        dolly: 0.5            // camera starts this much further back (m)
+        dolly: 0.15           // camera starts this fraction of its distance further back
+    },
+    tour: {
+        enabled: true,
+        speed: 0.28,          // m/s
+        startDelay: 900,      // after the doors open (ms)
+        endPause: 2200,       // pause at each end of the wall before drifting back (ms)
+        ease: 1.6             // seconds to reach full speed
     },
     sections: [],             // from the manifest "showroom" block
     colorNames: {}
@@ -100,9 +131,12 @@ const LOOP_ARC = Math.PI * 1.35;
 const LOOP_START = Math.PI * 1.5 - LOOP_ARC;   // arc ends straight below the rail
 const CORD_R = 0.0016;
 const TAP_SLOP = 6;                            // px before a press becomes a drag
+const LABEL_ROW = 96, LABEL_FONT = 46, LABEL_PAD = 20;   // title atlas: px per row / font / side padding
+const CULL_MARGIN = 0.3;                       // m beyond the view edges still packed into the draw
 
 const num = (v, d) => (typeof v === 'number' && isFinite(v) ? v : d);
 const clamp = THREE.MathUtils.clamp;
+const smooth = THREE.MathUtils.smoothstep;
 
 function mergeDeep(base, extra) {
     if (!extra || typeof extra !== 'object') return base;
@@ -118,6 +152,163 @@ function mergeDeep(base, extra) {
     return out;
 }
 
+/** Deterministic value in [-1, 1] per piece index (gentle size variation). */
+function jitter(i) {
+    const s = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
+    return (s - Math.floor(s)) * 2 - 1;
+}
+
+const mat4 = () => new THREE.Matrix4();
+
+/* ====================== layout (pure, testable) ===================== */
+
+/**
+ * Lays the wall out from the manifest only (no models needed).
+ * Every piece gets its display scale, width / height, left / right edge on the rail,
+ * rest pivot and pick box; every section its start / end.
+ */
+export function layoutWall(cfg, products) {
+    const L = cfg.layout;
+    const railY = L.centerY + L.railDrop;
+    const groups = new Map();
+    const pieces = [];
+    const sectionsOut = [];
+    let x = 0;
+    (cfg.sections || []).forEach((sec, si) => {
+        if (!sec || !Array.isArray(sec.items)) return;
+        if (pieces.length) x += L.sectionGap;
+        const first = pieces.length;
+        sec.items.forEach((item) => {
+            const id = item && item.product;
+            const conf = typeof id === 'string' ? products[id] : null;
+            if (!conf) return;
+            let g = groups.get(id);
+            if (!g) {
+                const rack = Object.assign({}, conf.rack || {});
+                const type = rack.type || (GARMENT_CATEGORIES.has(conf.category) ? 'hanger' : 'cord');
+                rack.frontSize = Array.isArray(rack.frontSize) ? rack.frontSize : [num(conf.targetHeight, 0.6), num(conf.targetHeight, 0.6)];
+                if (type === 'hanger' && !(Array.isArray(rack.hangerProfile) && rack.hangerProfile.length > 1)) {
+                    const [w, h] = rack.frontSize;
+                    rack.hangerProfile = [[0, h * 0.93], [w * 0.12, h * 0.92], [w * 0.33, h * 0.87]];
+                }
+                if (type === 'cord') {
+                    rack.attach = Array.isArray(rack.attach) ? rack.attach : [0, rack.frontSize[1], 0];
+                    rack.centerY = num(rack.centerY, rack.frontSize[1] / 2);
+                }
+                const scale = clamp(num(cfg.productScale && cfg.productScale[id], 1), 0.3, 3);
+                g = { id, conf, rack, type, scale, pieces: [], parts: [], slots: [], hanger: null, ready: false };
+                groups.set(id, g);
+            }
+            (item.colors || []).forEach((hex) => {
+                if (typeof hex !== 'string' || !HEX_RE.test(hex)) return;
+                if (pieces.length > first) x += L.pieceGap;
+                const s = g.scale * (1 + L.sizeJitter * jitter(pieces.length));
+                const w = g.rack.frontSize[0] * s, h = g.rack.frontSize[1] * s;
+                const left = x;
+                x += w;
+                const cx = left + w / 2;
+                const idx = pieces.length;
+                const p = {
+                    idx, group: g, hex: hex.toLowerCase(), s, w, h, left, right: x, x: cx,
+                    sectionLabel: sec.label || '',
+                    colorName: (cfg.colorNames && cfg.colorNames[hex.toLowerCase()]) || hex.toUpperCase(),
+                    rest: new THREE.Vector3(cx, railY, L.railZ), pos: new THREE.Vector3(cx, railY, L.railZ),
+                    idleYaw: (idx % 2 ? -1 : 1) * L.idleYaw,
+                    swing: { a: 0, v: 0 }, tilt: { a: 0, v: 0 }, yaw: { a: 0, v: 0, target: 0 },
+                    pull: 0, pullTarget: 0, ready: false, slot: -1, box: new THREE.Box3(), restBox: new THREE.Box3()
+                };
+                p.yaw.a = p.yaw.target = p.idleYaw;
+                g.pieces.push(p);
+                pieces.push(p);
+            });
+        });
+        if (pieces.length > first) {
+            sectionsOut.push({
+                id: sec.id || `s${si}`, label: sec.label || '',
+                startX: pieces[first].left, endX: x, first: pieces[first], last: pieces[pieces.length - 1]
+            });
+        }
+    });
+
+    // Vertical layout: garments hang from their hanger; cord items hang so their
+    // visual centre sits on the centre line (short cords, not at the top).
+    let nGarment = 0, nCord = 0;
+    const clipCount = { ring: 0, clip: 0, hook: 0 };
+    for (const p of pieces) {
+        const g = p.group, r = g.rack;
+        p.local = g.pieces.indexOf(p);
+        if (g.type === 'hanger') {
+            p.gIdx = nGarment++;
+            const A = r.hangerProfile[0];
+            g.holder = mat4().makeTranslation(-A[0], -A[1], -num(r.hangerZ, 0));
+            p.centreBelow = L.hookLength + p.s * (A[1] - r.frontSize[1] / 2);
+        } else {
+            p.cIdx = nCord++;
+            g.clip = ['ring', 'clip', 'hook'].includes(r.clip) ? r.clip : 'ring';
+            p.kIdx = clipCount[g.clip]++;
+            const above = p.s * (r.attach[1] - r.centerY);
+            p.cordLen = Math.max(0.05, L.railDrop - above);
+            p.centreBelow = p.cordLen + above;
+            g.tiltM = mat4().makeRotationX(THREE.MathUtils.degToRad(num(r.level, 0) + num(r.tilt, 0)));
+            g.holder = mat4().makeTranslation(-r.attach[0], -r.attach[1], -r.attach[2]);
+        }
+        const cy = railY - p.centreBelow;
+        p.restBox.set(new THREE.Vector3(p.left, cy - p.h / 2, L.railZ - 0.22), new THREE.Vector3(p.right, cy + p.h / 2, L.railZ + 0.22));
+        p.box.copy(p.restBox);
+    }
+
+    // Reference sizes for the framing: tallest garment, typical garment pitch
+    const garments = [...groups.values()].filter((g) => g.type === 'hanger');
+    const refGroups = garments.length ? garments : [...groups.values()];
+    const refH = Math.max(0.1, ...refGroups.map((g) => g.rack.frontSize[1] * g.scale));
+    const pitchList = pieces.filter((p) => !garments.length || p.group.type === 'hanger').map((p) => p.w + L.pieceGap).sort((a, b) => a - b);
+    const pitchRef = pitchList.length ? pitchList[Math.floor(pitchList.length / 2)] : 0.7;
+
+    return {
+        railY, groups, pieces, sectionsOut, refH, pitchRef, nGarment, nCord, clipCount,
+        left: pieces.length ? pieces[0].left : 0, right: pieces.length ? pieces[pieces.length - 1].right : 0
+    };
+}
+
+/**
+ * Camera framing for a container of `view.width` x `view.height` px, with the page
+ * overlay covering `insetLeft` px on the left (wide screens) or `insetTop` px on top.
+ */
+export function computeFrame(cfg, wall, view) {
+    const F = cfg.frame, L = cfg.layout;
+    const W = Math.max(1, num(view.width, 1)), H = Math.max(1, num(view.height, 1));
+    const aspect = W / H;
+    const insetLeft = clamp(num(view.insetLeft, 0), 0, W * 0.7);
+    const insetTop = clamp(num(view.insetTop, 0), 0, H * 0.7);
+    const tanV = Math.tan(THREE.MathUtils.degToRad(cfg.camera.fov / 2));
+    const labelPx = clamp(H * L.labelScale, L.labelMinPx, L.labelMaxPx);
+    const labelPlanePx = labelPx * LABEL_ROW / LABEL_FONT;
+    let visH = wall.refH / F.fill;                                        // garments fill the height
+    visH = Math.max(visH, (F.minAcross * wall.pitchRef) / aspect);         // enough pieces across (phones)
+    const room = F.centerLine - (insetTop + F.topMarginPx + L.labelGapPx + labelPlanePx) / H;
+    visH = Math.max(visH, L.railDrop / Math.max(0.06, room));              // title stays clear of the overlay
+    const dist = visH / (2 * tanV);
+    const ph = THREE.MathUtils.degToRad(F.pitch);
+    return {
+        width: W, height: H, aspect, insetLeft, insetTop, free: 1 - insetLeft / W,
+        visH, visW: visH * aspect, dist, mpp: visH / H, tanV, pitch: ph, labelPx,
+        lookY: L.centerY + (F.centerLine - 0.5) * visH,
+        camYOff: dist * Math.sin(ph), camZOff: dist * Math.cos(ph)
+    };
+}
+
+/** Horizontal limits and snap positions for a frame (camera x = view centre at the rail). */
+export function wallBounds(cfg, wall, frame) {
+    const half = frame.visW / 2;
+    const padM = cfg.frame.edgePad * frame.visW;
+    const insetM = frame.insetLeft * frame.mpp;
+    const lead = insetM + padM;                                  // view's left edge -> first piece
+    const snapOf = (left) => left - lead + half;
+    const minX = snapOf(wall.left);
+    const maxX = Math.max(minX, wall.right + padM - half);
+    return { half, padM, insetM, lead, minX, maxX, snapOf };
+}
+
 /* ============================== styles ============================== */
 
 const STYLE_ID = 'welzee-showroom-module-css';
@@ -131,15 +322,18 @@ function injectStyles() {
 .srm-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab}
 .srm-root.is-dragging .srm-canvas{cursor:grabbing}
 .srm-root.is-hovering .srm-canvas{cursor:pointer}
-.srm-nav{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;pointer-events:none;transition:opacity .3s}
-.srm-nav button{pointer-events:auto;border:1px solid rgba(255,255,255,.18);background:rgba(17,19,23,.72);color:#e5e7eb;font:600 12px/1 inherit;letter-spacing:.04em;padding:8px 12px;border-radius:999px;cursor:pointer;backdrop-filter:blur(6px)}
+.srm-nav{position:absolute;left:var(--srm-nav-left,12px);right:var(--srm-nav-right,12px);bottom:var(--srm-nav-bottom,12px);display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:3px;transition:opacity .3s}
+.srm-nav::-webkit-scrollbar{display:none}
+.srm-nav button{flex:0 0 auto;white-space:nowrap;border:1px solid rgba(255,255,255,.18);background:rgba(17,19,23,.72);color:#e5e7eb;font:600 12px/1 inherit;letter-spacing:.04em;padding:8px 12px;border-radius:999px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.srm-nav button:first-child{margin-left:auto}
+.srm-nav button:last-child{margin-right:auto}
 .srm-nav button:hover,.srm-nav button.is-current{background:rgba(34,197,94,.22);border-color:rgba(34,197,94,.6);color:#fff}
 .srm-nav button:focus-visible{outline:2px solid #22c55e;outline-offset:2px}
 .srm-root.is-pulled .srm-nav,.srm-root.is-intro .srm-nav{opacity:0;pointer-events:none}
 .srm-root.is-pulled .srm-nav button,.srm-root.is-intro .srm-nav button{pointer-events:none}
 .srm-hint{position:absolute;left:50%;top:14px;transform:translateX(-50%);padding:7px 14px;border-radius:999px;background:rgba(17,19,23,.7);color:#d1d5db;font:500 12px/1.2 inherit;pointer-events:none;transition:opacity .5s;opacity:0}
 .srm-root.show-hint .srm-hint{opacity:1}
-.srm-panel{position:absolute;top:16px;right:16px;bottom:16px;width:300px;max-width:calc(100% - 32px);display:flex;flex-direction:column;justify-content:center;gap:10px;padding:22px 20px;border-radius:18px;background:rgba(14,16,20,.88);border:1px solid rgba(255,255,255,.12);color:#f3f4f6;box-shadow:0 20px 40px rgba(0,0,0,.45);backdrop-filter:blur(10px);transform:translateX(24px);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.srm-panel{position:absolute;top:16px;right:16px;bottom:16px;width:300px;max-width:calc(100% - 32px);max-height:520px;margin:auto 0;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:22px 20px;border-radius:18px;background:rgba(14,16,20,.88);border:1px solid rgba(255,255,255,.12);color:#f3f4f6;box-shadow:0 20px 40px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transform:translateX(24px);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
 .srm-root.is-pulled .srm-panel{opacity:1;transform:none;pointer-events:auto}
 .srm-kicker{margin:0;font:700 11px/1 inherit;letter-spacing:.12em;text-transform:uppercase;color:#86efac}
 .srm-name{margin:0;font:800 22px/1.2 inherit;color:#fff}
@@ -152,10 +346,10 @@ function injectStyles() {
 .srm-close:hover{background:rgba(255,255,255,.16)}
 .srm-close:focus-visible{outline:2px solid #22c55e}
 @media (max-width:719px){
- .srm-panel{top:auto;left:12px;right:12px;bottom:12px;width:auto;max-width:none;padding:16px 16px 18px;gap:8px;transform:translateY(24px)}
+ .srm-panel{top:auto;left:12px;right:12px;bottom:12px;width:auto;max-width:none;max-height:none;margin:0;padding:16px 16px 18px;gap:8px;transform:translateY(24px)}
  .srm-name{font-size:18px}
 }
-.srm-hud{position:absolute;top:8px;left:8px;font:11px/1.35 ui-monospace,Menlo,Consolas,monospace;color:#a7f3d0;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:6px;pointer-events:none;white-space:pre}
+.srm-hud{position:absolute;top:8px;right:8px;font:11px/1.35 ui-monospace,Menlo,Consolas,monospace;color:#a7f3d0;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:6px;pointer-events:none;white-space:pre;z-index:9}
 `;
     document.head.appendChild(s);
 }
@@ -216,7 +410,6 @@ const sheenTexture = () => canvasTexture(256, 256, (x, w, h) => {
 /* ============================ geometry ============================== */
 
 function placed(geo, m) { geo.applyMatrix4(m); return geo; }
-const mat4 = () => new THREE.Matrix4();
 
 /** Rail loop (arc around the rail, ends straight below it), at the origin. */
 function loopGeometry(tube) {
@@ -277,9 +470,10 @@ function clipGeometry(kind) {
 
 /**
  * @param {HTMLElement} container  sized element; the showroom fills it
- * @param {object} options  { manifestUrl, base, reducedMotion, debug, config,
+ * @param {object} options  { manifestUrl, base, reducedMotion, debug, config, tour (false = off),
+ *        hint (false = no built-in "drag" hint), insets() -> {left, top} px covered by page text,
  *        customizeUrl(productId, hex), onFirstFrame(), onProductsShown(), onModelError(id, err) }
- * @returns controller { destroy(), goToSection(id), openDoors() }
+ * @returns controller { destroy(), goToSection(id), openDoors(), startTour(), stopTour(), relayout() }
  */
 export async function mountShowroom(container, options = {}) {
     if (!container) throw new Error('mountShowroom: container missing');
@@ -289,6 +483,7 @@ export async function mountShowroom(container, options = {}) {
     const customizeUrl = typeof options.customizeUrl === 'function'
         ? options.customizeUrl
         : (id, hex) => `${base}custom_order_3d.php?product=${encodeURIComponent(id)}&color=${encodeURIComponent(hex)}`;
+    const emit = (name, detail) => container.dispatchEvent(new CustomEvent('showroom:' + name, { detail: detail || {} }));
 
     // ---------- manifest + config ----------
     let manifest = { products: {} };
@@ -303,7 +498,16 @@ export async function mountShowroom(container, options = {}) {
     if (!Array.isArray(cfg.sections) || !cfg.sections.length) {          // fallback: one of everything
         cfg.sections = [{ id: 'all', label: 'Collection', items: Object.keys(products).map((p) => ({ product: p, colors: ['#f4f4f2'] })) }];
     }
-    const L = cfg.layout, C = cfg.camera, LT = cfg.lighting;
+    const L = cfg.layout, C = cfg.camera, LT = cfg.lighting, T = cfg.tour;
+
+    // ---------- layout from the manifest (no model needed) ----------
+    const wall = layoutWall(cfg, products);
+    const { groups, pieces, sectionsOut, railY } = wall;
+    if (!pieces.length) throw new Error('showroom: no products to show');
+    const wallStart = wall.left - L.endPadding;
+    const wallEnd = wall.right + L.endPadding;
+    const wallW = wallEnd - wallStart + 30;            // extra so the edges stay in the fog
+    const wallMid = (wallStart + wallEnd) / 2;
 
     // ---------- DOM ----------
     injectStyles();
@@ -312,7 +516,7 @@ export async function mountShowroom(container, options = {}) {
     root.className = 'srm-root is-intro';
     root.tabIndex = 0;
     root.setAttribute('role', 'region');
-    root.setAttribute('aria-label', 'Showroom wall. Drag or use the arrow keys to move along the wall, Enter to pick the piece in the middle.');
+    root.setAttribute('aria-label', 'Showroom wall. Drag or use the arrow keys to move along the wall, Enter to pick a piece.');
     const canvas = document.createElement('canvas');
     canvas.className = 'srm-canvas';
     canvas.setAttribute('aria-hidden', 'true');
@@ -321,10 +525,11 @@ export async function mountShowroom(container, options = {}) {
     const hint = document.createElement('div');
     hint.className = 'srm-hint';
     hint.textContent = 'Drag to explore the wall';
-    root.appendChild(hint);
+    if (options.hint !== false) root.appendChild(hint);
 
     const nav = document.createElement('div');
     nav.className = 'srm-nav';
+    nav.setAttribute('aria-label', 'Showroom sections');
     root.appendChild(nav);
 
     const panel = document.createElement('div');
@@ -350,8 +555,8 @@ export async function mountShowroom(container, options = {}) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(LT.background);
-    scene.fog = new THREE.Fog(LT.background, LT.fog[0], LT.fog[1]);
-    const camera = new THREE.PerspectiveCamera(C.fov, 1, 0.05, 40);
+    scene.fog = new THREE.Fog(LT.background, 4, 12);
+    const camera = new THREE.PerspectiveCamera(C.fov, 1, 0.05, 60);
 
     scene.add(new THREE.HemisphereLight(0x9aa6b8, 0x0b0c0e, LT.hemi));
     const key = new THREE.DirectionalLight(0xfff4e5, LT.key); key.position.set(1.5, 4, 3); scene.add(key);
@@ -365,89 +570,6 @@ export async function mountShowroom(container, options = {}) {
     const radial = radialTexture();
     const disposables = [wireMat, woodMat, darkMat, cordMat, radial];
 
-    // ---------- layout from the manifest (no model needed) ----------
-    const groups = new Map();     // productId -> group
-    const pieces = [];
-    const sectionsOut = [];
-    let x = 0;
-    cfg.sections.forEach((sec, si) => {
-        if (si > 0) x += L.sectionGap;
-        const startX = x;
-        (sec.items || []).forEach((item) => {
-            const id = item.product;
-            const conf = products[id];
-            if (!conf) return;
-            let g = groups.get(id);
-            if (!g) {
-                const rack = Object.assign({}, conf.rack || {});
-                const type = rack.type || (GARMENT_CATEGORIES.has(conf.category) ? 'hanger' : 'cord');
-                rack.frontSize = Array.isArray(rack.frontSize) ? rack.frontSize : [num(conf.targetHeight, 0.6), num(conf.targetHeight, 0.6)];
-                if (type === 'hanger' && !(Array.isArray(rack.hangerProfile) && rack.hangerProfile.length > 1)) {
-                    const [w, h] = rack.frontSize;
-                    rack.hangerProfile = [[0, h * 0.93], [w * 0.12, h * 0.92], [w * 0.33, h * 0.87]];
-                }
-                if (type === 'cord') {
-                    rack.attach = Array.isArray(rack.attach) ? rack.attach : [0, rack.frontSize[1], 0];
-                    rack.centerY = num(rack.centerY, rack.frontSize[1] / 2);
-                }
-                g = { id, conf, rack, type, pieces: [], parts: [], hanger: null, ready: false, section: sec.label };
-                groups.set(id, g);
-            }
-            const w = g.rack.frontSize[0];
-            (item.colors || []).forEach((hex) => {
-                if (!HEX_RE.test(hex)) return;
-                x += w / 2;
-                const p = {
-                    idx: pieces.length, group: g, hex: hex.toLowerCase(),
-                    colorName: (cfg.colorNames && cfg.colorNames[hex.toLowerCase()]) || hex.toUpperCase(),
-                    x, rest: new THREE.Vector3(x, L.railY, L.railZ), pos: new THREE.Vector3(x, L.railY, L.railZ),
-                    idleYaw: (pieces.length % 2 ? -1 : 1) * L.idleYaw,
-                    swing: { a: 0, v: 0 }, tilt: { a: 0, v: 0 }, yaw: { a: 0, v: 0, target: 0 },
-                    pull: 0, pullTarget: 0, ready: false, box: new THREE.Box3(), restBox: new THREE.Box3()
-                };
-                p.yaw.a = p.yaw.target = p.idleYaw;
-                g.pieces.push(p);
-                pieces.push(p);
-                x += w / 2 + L.pieceGap;
-            });
-        });
-        const endX = x - L.pieceGap;
-        if (endX > startX) sectionsOut.push({ id: sec.id || `s${si}`, label: sec.label || '', startX, endX, centerX: (startX + endX) / 2 });
-    });
-    if (!pieces.length) throw new Error('showroom: no products to show');
-    const wallStart = pieces[0].x - pieces[0].group.rack.frontSize[0] / 2 - L.endPadding;
-    const lastPiece = pieces[pieces.length - 1];
-    const wallEnd = lastPiece.x + lastPiece.group.rack.frontSize[0] / 2 + L.endPadding;
-    const wallW = wallEnd - wallStart + 14;            // extra so the edges stay in the fog
-    const wallMid = (wallStart + wallEnd) / 2;
-
-    // Per-group indices into shared meshes; vertical geometry per piece
-    let nGarment = 0, nCord = 0;
-    const clipCount = { ring: 0, clip: 0, hook: 0 };
-    for (const p of pieces) {
-        const g = p.group, r = g.rack;
-        p.local = g.pieces.indexOf(p);
-        if (g.type === 'hanger') {
-            p.gIdx = nGarment++;
-            const A = r.hangerProfile[0];
-            g.holder = mat4().makeTranslation(-A[0], -L.hookLength - A[1], -num(r.hangerZ, 0));
-            p.centreBelow = L.hookLength + A[1] - r.frontSize[1] / 2;
-        } else {
-            p.cIdx = nCord++;
-            g.clip = ['ring', 'clip', 'hook'].includes(r.clip) ? r.clip : 'ring';
-            p.kIdx = clipCount[g.clip]++;
-            const above = r.attach[1] - r.centerY;
-            p.cordLen = Math.max(0.06, L.railY - L.displayY - above);
-            p.centreBelow = p.cordLen + above;
-            g.tiltM = mat4().makeRotationX(THREE.MathUtils.degToRad(num(r.level, 0) + num(r.tilt, 0)));
-            g.holder = mat4().makeTranslation(-r.attach[0], -r.attach[1], -r.attach[2]);
-        }
-        const [w, h] = r.frontSize;
-        const cy = L.railY - p.centreBelow;
-        p.restBox.set(new THREE.Vector3(p.x - w / 2, cy - h / 2, L.railZ - 0.22), new THREE.Vector3(p.x + w / 2, cy + h / 2, L.railZ + 0.22));
-        p.box.copy(p.restBox);
-    }
-
     // ---------- shared instanced meshes ----------
     function instanced(geo, mat, count) {
         const m = new THREE.InstancedMesh(geo, mat, Math.max(1, count));
@@ -459,77 +581,87 @@ export async function mountShowroom(container, options = {}) {
         disposables.push(geo);
         return m;
     }
-    const hookMesh = instanced(hookGeometry(L.hookLength), wireMat, nGarment);
-    const loopMesh = instanced(loopGeometry(0.003), wireMat, nCord);
-    const cordMesh = instanced(new THREE.CylinderGeometry(1, 1, 1, 8), cordMat, nCord);
+    const hookMesh = instanced(hookGeometry(L.hookLength), wireMat, wall.nGarment);
+    const loopMesh = instanced(loopGeometry(0.003), wireMat, wall.nCord);
+    const cordMesh = instanced(new THREE.CylinderGeometry(1, 1, 1, 8), cordMat, wall.nCord);
     const clipMeshes = {};
-    for (const k of Object.keys(clipCount)) if (clipCount[k]) clipMeshes[k] = instanced(clipGeometry(k), k === 'clip' ? darkMat : wireMat, clipCount[k]);
+    for (const k of Object.keys(wall.clipCount)) if (wall.clipCount[k]) clipMeshes[k] = instanced(clipGeometry(k), k === 'clip' ? darkMat : wireMat, wall.clipCount[k]);
     const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, map: radial, transparent: true, opacity: LT.shadowOpacity, depthWrite: false });
     disposables.push(shadowMat);
     const shadowMesh = instanced(new THREE.PlaneGeometry(1, 1), shadowMat, pieces.length);
     shadowMesh.renderOrder = -1;
 
-    // ---------- stage: wall, floor, rail, labels, spotlights ----------
+    // ---------- stage: wall, floor, rail, titles, spotlights ----------
     const wallTex = wallTexture();
     wallTex.repeat.set(wallW / 1.2, 1);
-    const wall = new THREE.Mesh(new THREE.PlaneGeometry(wallW, 4.6), new THREE.MeshStandardMaterial({ color: LT.wall, map: wallTex, roughness: 0.95 }));
-    wall.position.set(wallMid, 2.3, 0);
-    scene.add(wall);
+    const wallMesh = new THREE.Mesh(new THREE.PlaneGeometry(wallW, 4.6), new THREE.MeshStandardMaterial({ color: LT.wall, map: wallTex, roughness: 0.95 }));
+    wallMesh.position.set(wallMid, 2.3, 0);
+    scene.add(wallMesh);
     const floorTex = floorTexture();
-    floorTex.repeat.set(wallW / 2.4, 6 / 1.2);
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(wallW, 6), new THREE.MeshStandardMaterial({ color: LT.floor, map: floorTex, roughness: 0.62, metalness: 0.05 }));
+    floorTex.repeat.set(wallW / 2.4, 24 / 1.2);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(wallW, 24), new THREE.MeshStandardMaterial({ color: LT.floor, map: floorTex, roughness: 0.62, metalness: 0.05 }));
     floor.rotation.x = -Math.PI / 2;
-    floor.position.set(wallMid, 0, 3);
+    floor.position.set(wallMid, 0, 12);
     scene.add(floor);
-    disposables.push(wall.geometry, wall.material, wallTex, floor.geometry, floor.material, floorTex);
+    disposables.push(wallMesh.geometry, wallMesh.material, wallTex, floor.geometry, floor.material, floorTex);
 
     // Rail across the whole wall + brackets every ~1.8 m (one merged mesh)
     {
         const railLen = wallEnd - wallStart;
-        const parts = [placed(new THREE.CylinderGeometry(0.016, 0.016, railLen, 16), mat4().makeRotationZ(Math.PI / 2).setPosition(wallMid, L.railY, L.railZ))];
+        const parts = [placed(new THREE.CylinderGeometry(0.016, 0.016, railLen, 16), mat4().makeRotationZ(Math.PI / 2).setPosition(wallMid, railY, L.railZ))];
         const n = Math.max(2, Math.round(railLen / 1.8) + 1);
         for (let i = 0; i < n; i++) {
             const bx = wallStart + 0.2 + (railLen - 0.4) * (i / (n - 1));
-            parts.push(placed(new THREE.BoxGeometry(0.03, 0.03, L.railZ), mat4().makeTranslation(bx, L.railY, L.railZ / 2)));
-            parts.push(placed(new THREE.CylinderGeometry(0.035, 0.035, 0.012, 16), mat4().makeRotationX(Math.PI / 2).setPosition(bx, L.railY, 0.006)));
+            parts.push(placed(new THREE.BoxGeometry(0.03, 0.03, L.railZ), mat4().makeTranslation(bx, railY, L.railZ / 2)));
+            parts.push(placed(new THREE.CylinderGeometry(0.035, 0.035, 0.012, 16), mat4().makeRotationX(Math.PI / 2).setPosition(bx, railY, 0.006)));
         }
         const rail = new THREE.Mesh(BufferGeometryUtils.mergeGeometries(parts), wireMat);
         scene.add(rail);
         disposables.push(rail.geometry);
     }
 
-    // Section labels: one canvas atlas, one merged mesh
+    // Section titles: one canvas atlas, one small mesh per section (they follow the
+    // camera while their section is on screen). Left-aligned with the first piece,
+    // just above the rail; size is constant on screen (layoutLabels()).
+    const labelMeshes = [];
     {
-        const rowH = 96, W = 1024;
-        const tex = canvasTexture(W, rowH * sectionsOut.length, (x2) => {
+        const W = 1024;
+        let H = 64;
+        while (H < LABEL_ROW * sectionsOut.length) H *= 2;
+        const tex = canvasTexture(W, H, (x2) => {
             x2.textBaseline = 'middle';
-            x2.font = '700 46px Inter, "Segoe UI", system-ui, sans-serif';
+            x2.font = `700 ${LABEL_FONT}px Inter, "Segoe UI", system-ui, sans-serif`;
             if ('letterSpacing' in x2) x2.letterSpacing = '8px';
             sectionsOut.forEach((s, i) => {
                 const t = s.label.toUpperCase();
-                const tw = Math.min(W - 40, x2.measureText(t).width);
-                s.texW = tw + 40;
+                const tw = Math.min(W - 2 * LABEL_PAD, x2.measureText(t).width + 8);
+                s.texW = tw + 2 * LABEL_PAD;
                 x2.fillStyle = '#e5e7eb';
-                x2.fillText(t, 20, i * rowH + rowH * 0.42, W - 40);
+                x2.fillText(t, LABEL_PAD, i * LABEL_ROW + LABEL_ROW * 0.42, W - 2 * LABEL_PAD);
                 x2.fillStyle = '#22c55e';
-                x2.fillRect(20, i * rowH + rowH * 0.8, Math.min(90, tw), 4);
+                x2.fillRect(LABEL_PAD, i * LABEL_ROW + LABEL_ROW * 0.8, Math.min(90, tw), 4);
             });
-        }, { noMips: true });
-        const geos = sectionsOut.map((s, i) => {
-            const h = L.labelHeight * (rowH / 46);
-            const w = h * (s.texW / rowH);
-            const g2 = new THREE.PlaneGeometry(w, h);
-            const uv = g2.attributes.uv;
-            const u1 = s.texW / W, v0 = 1 - (i + 1) / sectionsOut.length, v1 = 1 - i / sectionsOut.length;
-            for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * u1, v0 + uv.getY(k) * (v1 - v0));
-            return placed(g2, mat4().makeTranslation(s.centerX, L.labelY, 0.01));
         });
-        const labels = new THREE.Mesh(BufferGeometryUtils.mergeGeometries(geos), new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false }));
-        scene.add(labels);
-        disposables.push(labels.geometry, labels.material, tex);
+        tex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+        const labelMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false, depthWrite: false });
+        disposables.push(tex, labelMat);
+        sectionsOut.forEach((s, i) => {
+            const u = s.texW / LABEL_ROW;                                // width in plane heights
+            const g2 = new THREE.PlaneGeometry(u, 1);
+            const uv = g2.attributes.uv;
+            const u1 = s.texW / W, v1 = 1 - (i * LABEL_ROW) / H, v0 = 1 - ((i + 1) * LABEL_ROW) / H;
+            for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * u1, v0 + uv.getY(k) * (v1 - v0));
+            g2.translate(u / 2 - LABEL_PAD / LABEL_ROW, 0.5, 0);         // text starts at x = 0, bottom at y = 0
+            s.textU = (s.texW - 2 * LABEL_PAD) / LABEL_ROW;
+            const m = new THREE.Mesh(g2, labelMat);
+            m.position.set(s.startX, railY + 0.05, L.railZ - 0.03);
+            scene.add(m);
+            disposables.push(g2);
+            labelMeshes.push(m);
+        });
     }
 
-    // Spotlights (fake): beams, pools on the wall and on the floor (3 instanced meshes)
+    // Spotlights (fake): beams, pools on the wall and contact glow on the floor (3 instanced meshes)
     const beamMat = new THREE.MeshBasicMaterial({ color: LT.spotColor, transparent: true, opacity: 0, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
     const wallPoolMat = new THREE.MeshBasicMaterial({ color: LT.spotColor, map: radial, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
     const floorPoolMat = wallPoolMat.clone();
@@ -552,14 +684,15 @@ export async function mountShowroom(container, options = {}) {
         const wallPools = instanced(new THREE.PlaneGeometry(1, 1), wallPoolMat, spots.length);
         const floorPools = instanced(new THREE.PlaneGeometry(1, 1), floorPoolMat, spots.length);
         const m = mat4(), q = new THREE.Quaternion(), down = new THREE.Vector3(0, -1, 0);
+        const cy = L.centerY;
         spots.forEach((sx, i) => {
-            const from = new THREE.Vector3(sx, 3.1, 1.3), to = new THREE.Vector3(sx, 1.4, 0.02);
+            const from = new THREE.Vector3(sx, railY + 1.4, 1.2), to = new THREE.Vector3(sx, cy, 0.02);
             const dir = to.clone().sub(from); const len = dir.length();
             q.setFromUnitVectors(down, dir.normalize());
-            beams.setMatrixAt(i, m.compose(from, q, new THREE.Vector3(0.62, len, 0.62)));
-            wallPools.setMatrixAt(i, m.compose(new THREE.Vector3(sx, 1.42, 0.004), new THREE.Quaternion(), new THREE.Vector3(1.9, 2.4, 1)));
+            beams.setMatrixAt(i, m.compose(from, q, new THREE.Vector3(0.5, len, 0.5)));
+            wallPools.setMatrixAt(i, m.compose(new THREE.Vector3(sx, cy + 0.05, 0.004), new THREE.Quaternion(), new THREE.Vector3(1.6, 2.0, 1)));
             q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-            floorPools.setMatrixAt(i, m.compose(new THREE.Vector3(sx, 0.003, 0.45), q, new THREE.Vector3(1.6, 0.9, 1)));
+            floorPools.setMatrixAt(i, m.compose(new THREE.Vector3(sx, 0.003, LT.floorPoolZ), q, new THREE.Vector3(1.5, 0.7, 1)));
         });
         for (const mm of [beams, wallPools, floorPools]) { mm.instanceMatrix.needsUpdate = true; mm.computeBoundingSphere(); }
     }
@@ -572,13 +705,40 @@ export async function mountShowroom(container, options = {}) {
     }
     applyLightFade();
 
+    // ---------- framing state ----------
+    let frame = null, bounds = null;
+    let camX = 0, camVel = 0, camGoal = null, dollyK = reduced ? 0 : 1, started = false;
+    function readInsets() {
+        let r = {};
+        try { r = (typeof options.insets === 'function' ? options.insets() : options.insets) || {}; } catch (e) { r = {}; }
+        return { left: Math.max(0, num(r.left, 0)), top: Math.max(0, num(r.top, 0)) };
+    }
+    function placeCamera() {
+        const d = dollyK * cfg.intro.dolly * frame.dist;
+        camera.position.set(camX, frame.lookY + frame.camYOff + d * Math.sin(frame.pitch), L.railZ + frame.camZOff + d * Math.cos(frame.pitch));
+        camera.lookAt(camX, frame.lookY, L.railZ);
+        camera.updateMatrixWorld();
+    }
+    const readX = () => camX - bounds.half + bounds.lead;          // where the first full piece starts
+    function layoutLabels() {
+        const h = frame.labelPx * (LABEL_ROW / LABEL_FONT) * frame.mpp;
+        const y = railY + L.labelGapPx * frame.mpp;
+        sectionsOut.forEach((s, i) => {
+            labelMeshes[i].scale.setScalar(h);
+            labelMeshes[i].position.y = y;
+            s.textW = s.textU * h;
+        });
+    }
+    function stickLabels() {                                        // titles follow while their section is on screen
+        const rx = readX();
+        sectionsOut.forEach((s, i) => { labelMeshes[i].position.x = clamp(rx, s.startX, Math.max(s.startX, s.endX - s.textW)); });
+    }
+
     // ---------- glass cupboard doors (intro) ----------
     const glassMat = new THREE.MeshBasicMaterial({ color: 0xa9cfe0, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide });
     const edgeMat = new THREE.MeshBasicMaterial({ color: 0xe6f6ff, transparent: true, opacity: 0.8, depthWrite: false });
     const sheenMat = new THREE.MeshBasicMaterial({ map: sheenTexture(), transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
     disposables.push(glassMat, edgeMat, sheenMat, sheenMat.map);
-    const doorZ = L.railZ + 0.5;
-    const doorY0 = 0.05, doorY1 = 2.6;
     const doors = [];
     for (const side of [-1, 1]) {
         const hinge = new THREE.Group();
@@ -590,23 +750,28 @@ export async function mountShowroom(container, options = {}) {
         const edge = new THREE.Mesh(new THREE.BufferGeometry(), edgeMat);
         panelG.add(glass, sheen, edge);
         scene.add(hinge);
-        doors.push({ side, hinge, panelG, glass, sheen, edge });
+        doors.push({ side, hinge, panelG, glass, sheen, edge, halfW: 1 });
         disposables.push(glass.geometry, sheen.geometry);
     }
-    let doorsT = reduced ? 1 : 0, doorsOpening = reduced, doorsDone = reduced;
+    let doorsT = reduced ? 1 : 0, doorsOpening = reduced, doorsDone = reduced, doorsDoneAt = 0;
     function layoutDoors() {
-        if (doorsDone) return;
+        if (doorsDone || !frame) return;
         // Cover the whole view at the farthest intro camera position
-        const camZ = L.railZ + C.distance + (reduced ? 0 : cfg.intro.dolly);
-        const halfH = Math.tan(THREE.MathUtils.degToRad(C.fov / 2)) * (camZ - doorZ);
+        const camZ = L.railZ + frame.camZOff + (reduced ? 0 : cfg.intro.dolly * frame.dist * Math.cos(frame.pitch));
+        const doorZ = Math.min(L.railZ + 0.5, L.railZ + frame.camZOff * 0.55);
+        const dz = Math.max(0.3, camZ - doorZ);
+        const halfH = frame.tanV * dz * 1.25;
         const halfW = halfH * camera.aspect + 0.2;
-        const h = doorY1 - doorY0;
+        const h = halfH * 2;
+        const cy = frame.lookY + frame.camYOff - dz * Math.tan(frame.pitch);
+        const t = Math.max(0.012, h * 0.005);
         for (const d of doors) {
-            d.hinge.position.set(camX + d.side * halfW, (doorY0 + doorY1) / 2, doorZ);
+            d.halfW = halfW;
+            d.hinge.position.set(camX + d.side * halfW, cy, doorZ);
             d.panelG.position.x = -d.side * halfW / 2;
             d.glass.scale.set(halfW, h, 1);
             d.sheen.scale.set(halfW * 0.98, h * 0.98, 1);
-            const t = 0.012, w = halfW;
+            const w = halfW;
             d.edge.geometry.dispose();
             d.edge.geometry = BufferGeometryUtils.mergeGeometries([
                 placed(new THREE.BoxGeometry(w, t, t), mat4().makeTranslation(0, h / 2, 0)),
@@ -614,7 +779,7 @@ export async function mountShowroom(container, options = {}) {
                 placed(new THREE.BoxGeometry(t, h, t), mat4().makeTranslation(w / 2, 0, 0)),
                 placed(new THREE.BoxGeometry(t, h, t), mat4().makeTranslation(-w / 2, 0, 0)),
                 // brushed handle near the meeting edge
-                placed(new THREE.BoxGeometry(0.014, 0.34, 0.03), mat4().makeTranslation(d.side * (w / 2 - 0.09), -0.05, 0.02))
+                placed(new THREE.BoxGeometry(t * 1.2, h * 0.12, t * 2.5), mat4().makeTranslation(d.side * (w / 2 - h * 0.035), -h * 0.02, t * 1.6))
             ]);
         }
         applyDoors();
@@ -623,12 +788,12 @@ export async function mountShowroom(container, options = {}) {
         const k = THREE.MathUtils.smootherstep(doorsT, 0, 1);
         for (const d of doors) {
             d.hinge.rotation.y = d.side * 1.95 * k;    // both doors swing toward the camera (left -, right +)
-            const fade = 1 - THREE.MathUtils.smoothstep(doorsT, 0.7, 1);
+            const fade = 1 - smooth(doorsT, 0.7, 1);
             d.hinge.visible = !doorsDone && fade > 0.01;
         }
-        glassMat.opacity = 0.16 * (1 - THREE.MathUtils.smoothstep(doorsT, 0.7, 1));
-        edgeMat.opacity = 0.8 * (1 - THREE.MathUtils.smoothstep(doorsT, 0.7, 1));
-        sheenMat.opacity = 0.32 * (1 - THREE.MathUtils.smoothstep(doorsT, 0.5, 1));
+        glassMat.opacity = 0.16 * (1 - smooth(doorsT, 0.7, 1));
+        edgeMat.opacity = 0.8 * (1 - smooth(doorsT, 0.7, 1));
+        sheenMat.opacity = 0.32 * (1 - smooth(doorsT, 0.5, 1));
     }
     function openDoors() {
         if (doorsOpening || doorsDone) return;
@@ -636,28 +801,11 @@ export async function mountShowroom(container, options = {}) {
         wake();
     }
 
-    // ---------- camera motion ----------
-    let camX = 0, camVel = 0, camGoal = null, dolly = reduced ? 0 : cfg.intro.dolly;
-    let minX = wallStart, maxX = wallEnd;
-    const _dir = new THREE.Vector3(), _right = new THREE.Vector3(), _up = new THREE.Vector3();
-    function halfWidthAt(d) { return Math.tan(THREE.MathUtils.degToRad(C.fov / 2)) * d * camera.aspect; }
-    function viewHalfWidthAtWall() { return halfWidthAt(L.railZ + C.distance); }
-    function updateBounds() {
-        const hw = viewHalfWidthAtWall();
-        minX = wallStart + L.endPadding * 0.4 + hw * 0.85;
-        maxX = wallEnd - L.endPadding * 0.4 - hw * 0.85;
-        if (minX > maxX) minX = maxX = (wallStart + wallEnd) / 2;
-    }
-    function placeCamera() {
-        camera.position.set(camX, C.height, L.railZ + C.distance + dolly);
-        camera.lookAt(camX, C.lookY, 0);
-        camera.updateMatrixWorld();
-    }
-
     // ---------- piece matrices ----------
-    const M = { P: mat4(), S: mat4(), A: mat4(), B: mat4(), T: mat4(), O: mat4() };
+    const M = { P: mat4(), S: mat4(), A: mat4(), B: mat4(), T: mat4(), O: mat4(), Z: mat4() };
     const _e = new THREE.Euler();
     const _v = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
+    const _dir = new THREE.Vector3(), _right = new THREE.Vector3(), _up = new THREE.Vector3();
     const dirtyMeshes = new Set();
     function writePiece(p) {
         if (!p.ready) return;
@@ -665,11 +813,13 @@ export async function mountShowroom(container, options = {}) {
         _e.set(p.tilt.a, 0, p.swing.a, 'XYZ');
         M.P.makeRotationFromEuler(_e).setPosition(p.pos.x, p.pos.y, p.pos.z);
         M.S.makeRotationY(p.yaw.a);
+        M.Z.makeScale(p.s, p.s, p.s);
         if (g.type === 'hanger') {
             M.A.multiplyMatrices(M.P, M.S);
             hookMesh.setMatrixAt(p.gIdx, M.A); dirtyMeshes.add(hookMesh);
-            M.B.multiplyMatrices(M.A, g.holder);
-            g.hanger.setMatrixAt(p.local, M.B); dirtyMeshes.add(g.hanger);
+            M.T.makeTranslation(0, -L.hookLength, 0);
+            M.B.multiplyMatrices(M.A, M.T).multiply(M.Z).multiply(g.holder);
+            if (p.slot >= 0) { g.hanger.setMatrixAt(p.slot, M.B); dirtyMeshes.add(g.hanger); }
         } else {
             loopMesh.setMatrixAt(p.cIdx, M.P); dirtyMeshes.add(loopMesh);
             const len = Math.max(1e-3, p.cordLen - LOOP_R);
@@ -679,17 +829,18 @@ export async function mountShowroom(container, options = {}) {
             M.T.makeTranslation(0, -p.cordLen, 0);
             M.A.multiplyMatrices(M.P, M.T).multiply(g.tiltM).multiply(M.S);
             clipMeshes[g.clip].setMatrixAt(p.kIdx, M.A); dirtyMeshes.add(clipMeshes[g.clip]);
-            M.B.multiplyMatrices(M.A, g.holder);
+            M.B.multiplyMatrices(M.A, M.Z).multiply(g.holder);
         }
-        for (const part of g.parts) {
-            M.O.multiplyMatrices(M.B, part.local);
-            part.mesh.setMatrixAt(p.local, M.O);
-            dirtyMeshes.add(part.mesh);
+        if (p.slot >= 0) {
+            for (const part of g.parts) {
+                M.O.multiplyMatrices(M.B, part.local);
+                part.mesh.setMatrixAt(p.slot, M.O);
+                dirtyMeshes.add(part.mesh);
+            }
         }
         // Soft shadow on the wall at the rest position (fades when pulled forward)
-        const [w, h] = g.rack.frontSize;
         const k = 1 - Math.min(1, p.pull * 2);
-        M.T.compose(_v.set(p.rest.x + 0.03, L.railY - p.centreBelow - 0.04, 0.005), _q.identity(), _s.set(w * 1.15 * k, h * 1.12 * k, 1));
+        M.T.compose(_v.set(p.rest.x + 0.03, railY - p.centreBelow - 0.04 * p.s, 0.005), _q.identity(), _s.set(p.w * 1.15 * k, p.h * 1.12 * k, 1));
         shadowMesh.setMatrixAt(p.idx, M.T); dirtyMeshes.add(shadowMesh);
         // Pick box follows the pivot
         p.box.copy(p.restBox).translate(_v.subVectors(p.pos, p.rest));
@@ -700,6 +851,37 @@ export async function mountShowroom(container, options = {}) {
             if (recomputeSpheres) m.computeBoundingSphere();
         }
         dirtyMeshes.clear();
+    }
+
+    // Only the copies near the view are packed into each product's draw (slots
+    // 0..n-1, mesh.count = n), so a section of 9 hoodies costs what 2-3 cost.
+    let cullX = NaN;
+    const _col = new THREE.Color();
+    function cull(force) {
+        if (!frame) return false;
+        if (!force && Math.abs(camX - cullX) < 0.05) return false;
+        cullX = camX;
+        const a = camX - frame.visW / 2 - CULL_MARGIN, b = camX + frame.visW / 2 + CULL_MARGIN;
+        let changed = false;
+        for (const g of groups.values()) {
+            if (!g.ready) continue;
+            const vis = g.pieces.filter((p) => (p.right > a && p.left < b) || p.pull > 0 || p === pulled);
+            if (vis.length === g.slots.length && vis.every((p, i) => g.slots[i] === p)) continue;
+            for (const p of g.pieces) p.slot = -1;
+            vis.forEach((p, i) => { p.slot = i; });
+            g.slots = vis;
+            for (const part of g.parts) {
+                part.mesh.count = vis.length;
+                part.mesh.visible = vis.length > 0;
+                vis.forEach((p, i) => part.mesh.setColorAt(i, _col.set(part.policy || p.hex)));
+                if (part.mesh.instanceColor) part.mesh.instanceColor.needsUpdate = true;
+                dirtyMeshes.add(part.mesh);
+            }
+            if (g.hanger) { g.hanger.count = vis.length; g.hanger.visible = vis.length > 0; dirtyMeshes.add(g.hanger); }
+            for (const p of vis) writePiece(p);
+            changed = true;
+        }
+        return changed;
     }
 
     // ---------- model loading (once per product; nearest sections first) ----------
@@ -768,7 +950,7 @@ export async function mountShowroom(container, options = {}) {
             const pos = child.geometry.attributes.position;
             for (let i = 0; i < pos.count; i++) {
                 v.fromBufferAttribute(pos, i).applyMatrix4(m);
-                v.z *= 1 - 0.85 * THREE.MathUtils.smoothstep(v.y, y0, top);
+                v.z *= 1 - 0.85 * smooth(v.y, y0, top);
                 v.applyMatrix4(inv);
                 pos.setXYZ(i, v.x, v.y, v.z);
             }
@@ -796,7 +978,7 @@ export async function mountShowroom(container, options = {}) {
         model.updateMatrixWorld(true);
 
         const fixed = (g.conf.fixedMaterialColors && typeof g.conf.fixedMaterialColors === 'object') ? g.conf.fixedMaterialColors : {};
-        const count = g.pieces.length;
+        const capacity = g.pieces.length;
         model.traverse((child) => {
             if (!child.isMesh || !child.geometry) return;
             const geo = child.geometry;
@@ -809,26 +991,29 @@ export async function mountShowroom(container, options = {}) {
             const original = src.color ? '#' + src.color.getHexString() : '#ffffff';
             const policy = fixedHex ? fixedHex : (HARDWARE_RE.test(name) ? original : null);   // null = tint
             if (mat.color) mat.color.set('#ffffff');                                         // instance colour decides
-            const mesh = new THREE.InstancedMesh(geo, mat, count);
+            const mesh = new THREE.InstancedMesh(geo, mat, capacity);
             mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-            const col = new THREE.Color();
-            g.pieces.forEach((p, i) => mesh.setColorAt(i, col.set(policy || p.hex)));
-            if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+            mesh.setColorAt(0, _col.set('#ffffff'));                                         // creates instanceColor
+            mesh.count = 0;
+            mesh.visible = false;
             scene.add(mesh);
-            g.parts.push({ mesh, local: child.matrixWorld.clone() });
+            g.parts.push({ mesh, policy, local: child.matrixWorld.clone() });
             disposables.push(mat, geo);
         });
         if (g.type === 'hanger') {
             const hg = hangerGeometry(g.rack);
-            g.hanger = new THREE.InstancedMesh(hg, g.rack.hangerStyle === 'metal' ? darkMat : woodMat, count);
+            g.hanger = new THREE.InstancedMesh(hg, g.rack.hangerStyle === 'metal' ? darkMat : woodMat, capacity);
             g.hanger.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+            g.hanger.count = 0;
+            g.hanger.visible = false;
             scene.add(g.hanger);
             disposables.push(hg);
         }
         g.ready = true;
-        for (const p of g.pieces) { p.ready = true; writePiece(p); }
+        g.slots = [];
+        for (const p of g.pieces) { p.ready = true; p.slot = -1; writePiece(p); }   // hooks, cords, shadows
+        cull(true);                                                                  // pack the visible copies
         flushMatrices(true);
-        // spheres of the shared meshes span the wall: recompute once more for the new pieces
         if (!reduced) g.pieces.forEach((p, i) => { p.swing.v += 0.25 * (i % 2 ? -1 : 1); });
         wake();
         if (!productsShown) {
@@ -855,11 +1040,11 @@ export async function mountShowroom(container, options = {}) {
         const pts = [];
         const seg = (a, b) => pts.push(a.x, a.y, a.z, b.x, b.y, b.z);
         const V = (x2, y, z) => new THREE.Vector3(x2, y, z);
-        seg(V(wallStart, L.railY, L.railZ), V(wallEnd, L.railY, L.railZ));                    // rail
-        seg(V(wallStart, L.displayY, L.railZ), V(wallEnd, L.displayY, L.railZ));              // display line
+        seg(V(wallStart, railY, L.railZ), V(wallEnd, railY, L.railZ));                        // rail
+        seg(V(wallStart, L.centerY, L.railZ), V(wallEnd, L.centerY, L.railZ));                // centre line
         for (const s of sectionsOut) {                                                       // section bounds
-            seg(V(s.startX - 0.05, 0.1, 0.02), V(s.startX - 0.05, 2.45, 0.02));
-            seg(V(s.endX + 0.05, 0.1, 0.02), V(s.endX + 0.05, 2.45, 0.02));
+            seg(V(s.startX, 0.05, L.railZ), V(s.startX, railY + 0.3, L.railZ));
+            seg(V(s.endX, 0.05, L.railZ), V(s.endX, railY + 0.3, L.railZ));
         }
         for (const p of pieces) {
             const b = p.restBox, a = b.min, c = b.max;                                        // pick boxes
@@ -867,8 +1052,8 @@ export async function mountShowroom(container, options = {}) {
             for (const yy of ys) for (const zz of zs) seg(V(xs[0], yy, zz), V(xs[1], yy, zz));
             for (const xx of xs) for (const zz of zs) seg(V(xx, ys[0], zz), V(xx, ys[1], zz));
             for (const xx of xs) for (const yy of ys) seg(V(xx, yy, zs[0]), V(xx, yy, zs[1]));
-            seg(V(p.rest.x - 0.03, L.railY, L.railZ), V(p.rest.x + 0.03, L.railY, L.railZ));  // pivot cross
-            seg(V(p.rest.x, L.railY - 0.03, L.railZ), V(p.rest.x, L.railY + 0.03, L.railZ));
+            seg(V(p.rest.x - 0.03, railY, L.railZ), V(p.rest.x + 0.03, railY, L.railZ));      // pivot cross
+            seg(V(p.rest.x, railY - 0.03, L.railZ), V(p.rest.x, railY + 0.03, L.railZ));
         }
         if (debugLines) { scene.remove(debugLines); debugLines.geometry.dispose(); }
         const g2 = new THREE.BufferGeometry();
@@ -880,6 +1065,7 @@ export async function mountShowroom(container, options = {}) {
 
     // ---------- interaction ----------
     let hovered = null, armed = null, armedAt = 0, pulled = null, lastTap = { t: 0, p: null };
+    let snapPending = false;
     const raycaster = new THREE.Raycaster();
     const ndc = new THREE.Vector2();
     function pick(clientX, clientY) {
@@ -888,7 +1074,7 @@ export async function mountShowroom(container, options = {}) {
         raycaster.setFromCamera(ndc, camera);
         let best = null, bestD = Infinity;
         for (const p of pieces) {
-            if (!p.ready) continue;
+            if (!p.ready || p.slot < 0) continue;
             const hit = raycaster.ray.intersectBox(p.box, _v);
             if (hit) { const d = hit.distanceTo(raycaster.ray.origin); if (d < bestD) { bestD = d; best = p; } }
         }
@@ -923,14 +1109,15 @@ export async function mountShowroom(container, options = {}) {
 
     function pullForward(p) {
         if (!p || !p.ready) return;
+        stopTour();
         if (pulled && pulled !== p) putBack(true);
         setHover(null);
         if (armed) { showBack(armed, false); armed = null; }
         pulled = p;
         p.pullTarget = 1;
-        p.yaw.target = p.idleYaw - p.idleYaw;           // face the camera first
-        camVel = 0; camGoal = null;
-        panelKicker.textContent = p.group.section || '';
+        p.yaw.target = 0;                                     // face the camera first
+        camVel = 0; camGoal = null; snapPending = false;
+        panelKicker.textContent = p.sectionLabel;
         panelName.textContent = p.group.conf.name || p.group.id;
         panelSwatch.style.background = p.hex;
         panelColor.textContent = p.colorName;
@@ -941,6 +1128,8 @@ export async function mountShowroom(container, options = {}) {
         panel.removeAttribute('aria-hidden');
         setTimeout(() => { if (pulled === p) panelCta.focus({ preventScroll: true }); }, 350);
         poke(p, 0.4);
+        cull(true);
+        emit('pull', { product: p.group.id, color: p.hex });
         wake();
     }
     function putBack(silent) {
@@ -953,14 +1142,13 @@ export async function mountShowroom(container, options = {}) {
         root.classList.remove('is-pulled');
         panel.inert = true;
         panel.setAttribute('aria-hidden', 'true');
-        if (!silent) root.focus({ preventScroll: true });
+        if (!silent) { root.focus({ preventScroll: true }); emit('release'); }
         wake();
     }
     function presentPivot(p, out) {
-        const [w, h] = p.group.rack.frontSize;
-        const tanV = Math.tan(THREE.MathUtils.degToRad(C.fov / 2));
-        let d = Math.max(h / (C.presentFill * 2 * tanV), w / (0.75 * 2 * tanV * camera.aspect));
-        d = clamp(d, 0.65, C.distance - 0.4);
+        const tanV = frame.tanV;
+        let d = Math.max(p.h / (C.presentFill * 2 * tanV), p.w / (0.75 * 2 * tanV * camera.aspect));
+        d = clamp(d, 0.65, Math.max(0.7, frame.dist - 0.4));
         camera.getWorldDirection(_dir);
         _right.crossVectors(_dir, camera.up).normalize();
         _up.crossVectors(_right, _dir).normalize();
@@ -974,17 +1162,33 @@ export async function mountShowroom(container, options = {}) {
         return out;
     }
 
+    // ---------- tour (slow drift for screen recordings) ----------
+    const tourAllowed = !reduced && options.tour !== false && !!T && T.enabled !== false;
+    const tour = { on: false, stopped: !tourAllowed, dir: 1, k: 0, holdUntil: 0, startAt: 0, prevC: NaN };
+    function stopTour() {
+        if (tour.stopped) return;
+        tour.stopped = true;
+        if (tour.on) { tour.on = false; snapPending = true; emit('tour', { on: false }); wake(); }
+    }
+    function startTour() {
+        if (reduced || destroyed) return;
+        if (pulled) putBack(true);
+        tour.stopped = false; tour.on = true; tour.k = 0; tour.holdUntil = 0; tour.prevC = NaN;
+        tour.dir = bounds && camX >= bounds.maxX - 0.01 ? -1 : 1;
+        camGoal = null; camVel = 0;
+        emit('tour', { on: true });
+        wake();
+    }
+
     // Pointer: drag the wall (or turn the pulled piece), tap / click to pick
     let down = null, dragging = false, lastMoveT = 0, lastMoveX = 0, velSample = 0;
-    function metresPerPixel() {           // measured at the rail, so the pieces follow the finger
-        return (2 * halfWidthAt(C.distance)) / Math.max(1, canvas.clientWidth);
-    }
     canvas.addEventListener('pointerdown', (e) => {
         if (e.button !== undefined && e.button > 0) return;
         down = { x: e.clientX, y: e.clientY, t: performance.now(), type: e.pointerType || 'mouse', id: e.pointerId };
         dragging = false;
         lastMoveT = down.t; lastMoveX = e.clientX; velSample = 0;
         camGoal = null;
+        stopTour();
         if (!doorsDone) openDoors();
         firstInteraction();
     });
@@ -1003,16 +1207,17 @@ export async function mountShowroom(container, options = {}) {
                 if (pulled) {
                     pulled.yaw.target += mx * 0.012;           // turn the piece in your hand
                 } else if (doorsT > 0.5) {
-                    const dm = -mx * metresPerPixel() * C.dragSpeed;
-                    camX = clamp(camX + dm, minX - 0.6, maxX + 0.6);
+                    const dm = -mx * frame.mpp * C.dragSpeed;   // measured at the rail: pieces follow the finger
+                    camX = clamp(camX + dm, bounds.minX - 0.6, bounds.maxX + 0.6);
                     const dt = Math.max(1, now - lastMoveT) / 1000;
                     velSample = 0.6 * velSample + 0.4 * (dm / dt);
                 }
                 lastMoveT = now; lastMoveX = e.clientX;
                 wake();
             }
-        } else if ((e.pointerType || 'mouse') === 'mouse' && !pulled && doorsDone) {
-            setHover(pick(e.clientX, e.clientY));
+        } else if ((e.pointerType || 'mouse') === 'mouse') {
+            stopTour();                                        // hovering the wall ends the tour
+            if (!pulled && doorsDone) setHover(pick(e.clientX, e.clientY));
         }
     });
     function endPress(e, cancelled) {
@@ -1022,7 +1227,10 @@ export async function mountShowroom(container, options = {}) {
         down = null; dragging = false;
         root.classList.remove('is-dragging');
         if (wasDrag) {
-            if (!pulled && performance.now() - lastMoveT < 80) camVel = clamp(velSample, -C.maxSpeed, C.maxSpeed);
+            if (!pulled) {
+                if (performance.now() - lastMoveT < 80) camVel = clamp(velSample, -C.maxSpeed, C.maxSpeed);
+                snapPending = true;
+            }
             wake();
             return;
         }
@@ -1054,67 +1262,109 @@ export async function mountShowroom(container, options = {}) {
         poke(p); showBack(p, true);
     }
 
-    // Wheel: sideways (trackpad) always; vertical wheel only while the wall can still move
+    // Wheel: sideways (trackpad / shift+wheel) always; vertical wheel only if enabled
     root.addEventListener('wheel', (e) => {
         if (pulled) return;
-        if (!doorsDone) { openDoors(); firstInteraction(); }
         const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
         const delta = horizontal ? e.deltaX : (C.wheelVertical ? e.deltaY : 0);
-        if (!delta) return;
+        if (!delta) { stopTour(); return; }                    // page scroll: just end the tour
+        if (!doorsDone) openDoors();
         const unit = e.deltaMode === 1 ? 16 : (e.deltaMode === 2 ? 400 : 1);
         const dm = delta * unit * C.wheelSpeed;
-        const atEnd = (dm < 0 && camX <= minX + 0.001) || (dm > 0 && camX >= maxX - 0.001);
+        const atEnd = (dm < 0 && camX <= bounds.minX + 0.001) || (dm > 0 && camX >= bounds.maxX - 0.001);
         if (!horizontal && atEnd) return;                      // let the page scroll on
         e.preventDefault();
+        stopTour();
         camGoal = null;
         camVel = clamp(camVel + dm * 12, -C.maxSpeed, C.maxSpeed);
+        snapPending = true;
         firstInteraction();
         wake();
     }, { passive: false });
+
+    // Snap positions: a piece's left edge at the padded left edge of the free area
+    function nearestSnap(x0, dir) {
+        let best = null, bd = Infinity;
+        for (const p of pieces) {
+            const sx = clamp(bounds.snapOf(p.left), bounds.minX, bounds.maxX);
+            if (dir > 0 && sx <= x0 + 0.01) continue;
+            if (dir < 0 && sx >= x0 - 0.01) continue;
+            const d = Math.abs(sx - x0);
+            if (d < bd) { bd = d; best = { x: sx, p }; }
+        }
+        return best;
+    }
 
     // Keyboard
     root.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && pulled) { e.preventDefault(); putBack(); return; }
         if (!doorsDone) openDoors();
+        stopTour();
         if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
             if (pulled) return;
             e.preventDefault();
-            goTo(clamp((camGoal ?? camX) + (e.key === 'ArrowRight' ? 1 : -1) * C.keyStep, minX, maxX));
+            const s = nearestSnap(camGoal ?? camX, e.key === 'ArrowRight' ? 1 : -1);
+            if (s) goTo(s.x);
             firstInteraction();
         } else if ((e.key === 'Enter' || e.key === ' ') && e.target === root && !pulled) {
             e.preventDefault();
-            let best = null, bd = Infinity;                    // piece nearest the middle of the view
-            for (const p of pieces) if (p.ready && Math.abs(p.x - camX) < bd) { bd = Math.abs(p.x - camX); best = p; }
+            const cx = readX() + (frame.visW - bounds.lead) / 2 - bounds.padM;   // middle of the free area
+            let best = null, bd = Infinity;
+            for (const p of pieces) if (p.ready && Math.abs(p.x - cx) < bd) { bd = Math.abs(p.x - cx); best = p; }
             if (best) pullForward(best);
         }
     });
     const onDocKey = (e) => { if (e.key === 'Escape' && pulled) putBack(); };
     document.addEventListener('keydown', onDocKey);
     root.addEventListener('mouseenter', () => { if (!doorsDone) openDoors(); });
-    const onPageScroll = () => { if (!doorsDone) openDoors(); };          // doors also open on page scroll
-    window.addEventListener('scroll', onPageScroll, { passive: true, once: true });
+    const onPageScroll = () => { if (!doorsDone) openDoors(); stopTour(); };   // doors open / tour ends on page scroll
+    window.addEventListener('scroll', onPageScroll, { passive: true });
 
-    // Section buttons
+    // Section buttons (scroll sideways on small screens)
     const navButtons = sectionsOut.map((s) => {
         const b = document.createElement('button');
         b.type = 'button';
         b.textContent = s.label;
-        b.addEventListener('click', () => { if (!doorsDone) openDoors(); goTo(clamp(s.centerX, minX, maxX)); firstInteraction(); });
+        b.addEventListener('click', () => {
+            if (!doorsDone) openDoors();
+            stopTour();
+            goTo(clamp(bounds.snapOf(s.startX), bounds.minX, bounds.maxX));
+            firstInteraction();
+        });
         nav.appendChild(b);
         return { s, b };
     });
-    function updateNavCurrent() {
-        let cur = null, bd = Infinity;
-        for (const n of navButtons) { const d = Math.abs(n.s.centerX - camX); if (d < bd) { bd = d; cur = n; } }
-        for (const n of navButtons) n.b.classList.toggle('is-current', n === cur);
+    let curSection = -1;
+    function revealTab(b) {
+        const l = b.offsetLeft, r = l + b.offsetWidth;
+        if (l < nav.scrollLeft + 8) nav.scrollTo({ left: Math.max(0, l - 12), behavior: reduced ? 'auto' : 'smooth' });
+        else if (r > nav.scrollLeft + nav.clientWidth - 8) nav.scrollTo({ left: r - nav.clientWidth + 12, behavior: reduced ? 'auto' : 'smooth' });
     }
-    function goTo(x2) { camGoal = x2; camVel = 0; wake(); }
+    function updateNavCurrent() {
+        const rx = readX() + 0.05;
+        let idx = 0;
+        sectionsOut.forEach((s, i) => { if (s.startX - L.sectionGap * 0.5 <= rx) idx = i; });
+        if (camX >= bounds.maxX - 0.02) {                       // wall end: the last section that is clearly in view
+            const viewR = camX + bounds.half;
+            sectionsOut.forEach((s, i) => { if (i > idx && s.startX < viewR - 0.3 && s.endX <= viewR + 0.05) idx = i; });
+        }
+        if (idx === curSection) return;
+        curSection = idx;
+        navButtons.forEach((n, i) => {
+            n.b.classList.toggle('is-current', i === idx);
+            if (i === idx) n.b.setAttribute('aria-current', 'true'); else n.b.removeAttribute('aria-current');
+        });
+        if (navButtons[idx]) revealTab(navButtons[idx].b);
+        emit('section', { id: sectionsOut[idx].id, label: sectionsOut[idx].label });
+    }
+    function goTo(x2) { camGoal = x2; camVel = 0; snapPending = false; wake(); }
 
     let hintShown = false, interacted = false;
     function firstInteraction() {
         if (interacted) return;
         interacted = true;
         root.classList.remove('show-hint');
+        emit('interact');
     }
 
     // ---------- loop ----------
@@ -1175,28 +1425,53 @@ export async function mountShowroom(container, options = {}) {
             applyDoors();
             if (doorsT >= 1) {
                 doorsDone = true;
+                doorsDoneAt = now;
                 applyDoors();
                 root.classList.remove('is-intro');
-                if (!interacted && !hintShown) {
+                if (options.hint !== false && !interacted && !hintShown) {
                     hintShown = true;
                     root.classList.add('show-hint');
                     setTimeout(() => root.classList.remove('show-hint'), 3500);
                 }
                 if (!reduced) {                                           // ripple along the visible wall
-                    const hw = viewHalfWidthAtWall();
-                    pieces.forEach((p) => { if (p.ready && Math.abs(p.x - camX) < hw + 0.5) setTimeout(() => poke(p, 0.45), 60 + (p.x - (camX - hw)) * 140); });
+                    const x0 = camX - bounds.half;
+                    pieces.forEach((p) => { if (p.ready && Math.abs(p.x - camX) < bounds.half + 0.5) setTimeout(() => poke(p, 0.45), 60 + (p.x - x0) * 140); });
                 }
             }
             active = true;
         }
-        if (introStart && (!doorsDone || dolly > 0)) {
+        if (introStart && dollyK > 0) {
             const k = THREE.MathUtils.smootherstep(Math.min(1, (now - introStart) / 2600), 0, 1);
-            dolly = reduced ? 0 : cfg.intro.dolly * (1 - k);
-            if (dolly > 1e-4) active = true; else dolly = 0;
+            dollyK = reduced ? 0 : 1 - k;
+            if (dollyK > 1e-4) active = true; else dollyK = 0;
         }
 
-        // camera: goal tween, inertia, soft ends
-        if (camGoal !== null) {
+        // tour: starts a moment after the doors open, unless someone already interacted
+        if (!tour.on && !tour.stopped && doorsDone && productsShown) {
+            if (!tour.startAt) tour.startAt = Math.max(now, doorsDoneAt) + T.startDelay;
+            if (now >= tour.startAt) { tour.on = true; tour.k = 0; emit('tour', { on: true }); }
+            active = true;
+        }
+
+        // camera: tour drift, goal tween, inertia, snap, soft ends
+        if (tour.on && camGoal === null && !dragging) {
+            if (now >= tour.holdUntil) {
+                tour.k = Math.min(1, tour.k + dt / Math.max(0.1, T.ease));
+                const toEnd = tour.dir > 0 ? bounds.maxX - camX : camX - bounds.minX;
+                const v = T.speed * smooth(tour.k, 0, 1) * Math.max(0.15, smooth(toEnd, 0, 0.8));
+                camX += v * tour.dir * dt;
+                if (tour.dir > 0 && camX >= bounds.maxX - 0.002) { camX = bounds.maxX; tour.dir = -1; tour.k = 0; tour.holdUntil = now + T.endPause; }
+                else if (tour.dir < 0 && camX <= bounds.minX + 0.002) { camX = bounds.minX; tour.dir = 1; tour.k = 0; tour.holdUntil = now + T.endPause; }
+            }
+            // a gentle swing as each piece passes the middle of the free area
+            const c = readX() + (frame.visW - bounds.lead) / 2;
+            if (isFinite(tour.prevC)) {
+                const lo = Math.min(tour.prevC, c), hi = Math.max(tour.prevC, c);
+                for (const p of pieces) if (p.ready && p.x > lo && p.x <= hi) poke(p, 0.3);
+            }
+            tour.prevC = c;
+            active = true;
+        } else if (camGoal !== null) {
             camX += (camGoal - camX) * (1 - Math.exp(-5 * dt));
             if (Math.abs(camGoal - camX) < 0.002) { camX = camGoal; camGoal = null; }
             active = true;
@@ -1206,12 +1481,20 @@ export async function mountShowroom(container, options = {}) {
                 camVel *= Math.exp(-C.friction * dt);
                 active = true;
             } else camVel = 0;
+            const { minX, maxX } = bounds;
             if (camX < minX) { camX += (minX - camX) * (1 - Math.exp(-9 * dt)); camVel *= 0.5; active = active || minX - camX > 0.001; if (minX - camX <= 0.001) camX = minX; }
             if (camX > maxX) { camX += (maxX - camX) * (1 - Math.exp(-9 * dt)); camVel *= 0.5; active = active || camX - maxX > 0.001; if (camX - maxX <= 0.001) camX = maxX; }
+            if (snapPending && Math.abs(camVel) < 0.15 && camX >= minX - 0.001 && camX <= maxX + 0.001) {
+                snapPending = false;
+                const s = C.snap ? nearestSnap(camX, 0) : null;
+                if (s && Math.abs(s.x - camX) < 0.5 * (s.p.w + L.pieceGap)) goTo(s.x);
+            }
         } else active = true;
         placeCamera();
-        if (!doorsDone) for (const d of doors) d.hinge.position.x = camX + d.side * Math.abs(d.hinge.position.x - camX);
+        if (!doorsDone) for (const d of doors) d.hinge.position.x = camX + d.side * d.halfW;
+        stickLabels();
         updateNavCurrent();
+        const repacked = cull(false);
 
         // pieces
         let pullingAny = false;
@@ -1221,7 +1504,7 @@ export async function mountShowroom(container, options = {}) {
             if (r.moving) { writePiece(p); active = true; }
             if (r.pulling) pullingAny = true;
         }
-        flushMatrices(pullingAny);
+        flushMatrices(pullingAny || repacked);
 
         renderer.render(scene, camera);
         if (!firstFrame) { firstFrame = true; if (options.onFirstFrame) options.onFirstFrame(); }
@@ -1230,7 +1513,9 @@ export async function mountShowroom(container, options = {}) {
             if (now - hudT > 500) {
                 fps = Math.round(frames * 1000 / (now - hudT || 1)); frames = 0; hudT = now;
                 const i = renderer.info.render;
-                hud.textContent = `draw calls ${i.calls}\ntriangles  ${i.triangles.toLocaleString()}\nfps        ${fps}\ncamera x   ${camX.toFixed(2)} m\npieces     ${pieces.filter((p) => p.ready).length}/${pieces.length}`;
+                let drawn = 0;
+                for (const g of groups.values()) drawn += g.slots.length;
+                hud.textContent = `draw calls ${i.calls}\ntriangles  ${i.triangles.toLocaleString()}\nfps        ${fps}\ncamera x   ${camX.toFixed(2)} m\nview       ${frame.visW.toFixed(2)} x ${frame.visH.toFixed(2)} m\nloaded     ${pieces.filter((p) => p.ready).length}/${pieces.length}\npacked     ${drawn} copies\nsection    ${sectionsOut[curSection] ? sectionsOut[curSection].label : '-'}\ntour       ${tour.on ? 'on' : 'off'}`;
             }
             active = true;                                               // keep the HUD live in debug
         }
@@ -1241,12 +1526,24 @@ export async function mountShowroom(container, options = {}) {
     // ---------- size, visibility ----------
     function resize() {
         const w = Math.max(1, root.clientWidth), h = Math.max(1, root.clientHeight);
+        const keepRead = started && bounds ? readX() : null;           // keep the first visible piece in place
         renderer.setSize(w, h, false);
+        const ins = readInsets();
+        frame = computeFrame(cfg, wall, { width: w, height: h, insetLeft: ins.left, insetTop: ins.top });
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
-        updateBounds();
-        camX = clamp(camX, minX, maxX);
+        bounds = wallBounds(cfg, wall, frame);
+        scene.fog.near = frame.dist + LT.fog[0];
+        scene.fog.far = frame.dist + LT.fog[1];
+        camX = keepRead === null ? bounds.minX : keepRead + bounds.half - bounds.lead;
+        camX = clamp(camX, bounds.minX, bounds.maxX);
+        if (camGoal !== null) camGoal = clamp(camGoal, bounds.minX, bounds.maxX);
+        layoutLabels();
         layoutDoors();
+        placeCamera();
+        stickLabels();
+        if (cull(true)) flushMatrices(true);
+        started = true;
         wake();
     }
     const ro = new ResizeObserver(() => resize());
@@ -1261,10 +1558,6 @@ export async function mountShowroom(container, options = {}) {
 
     // ---------- start ----------
     resize();
-    camX = minX;
-    updateBounds();
-    layoutDoors();
-    placeCamera();
     if (reduced) { root.classList.remove('is-intro'); for (const d of doors) d.hinge.visible = false; }
     if (debug) buildDebug();
     wake();
@@ -1272,7 +1565,13 @@ export async function mountShowroom(container, options = {}) {
 
     return {
         openDoors,
-        goToSection(id) { const s = sectionsOut.find((q) => q.id === id); if (s) { openDoors(); goTo(clamp(s.centerX, minX, maxX)); } },
+        startTour,
+        stopTour,
+        relayout: () => { if (!destroyed) resize(); },
+        goToSection(id) {
+            const s = sectionsOut.find((q) => q.id === id);
+            if (s) { openDoors(); stopTour(); goTo(clamp(bounds.snapOf(s.startX), bounds.minX, bounds.maxX)); }
+        },
         destroy() {
             if (destroyed) return;
             destroyed = true;
