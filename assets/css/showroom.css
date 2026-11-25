@@ -1,0 +1,158 @@
+/* assets/css/showroom.css — Showroom page (showroom.php only).
+ * The 3D wall module (assets/js/3d/showroom.js) injects its own small stylesheet,
+ * so it also works when mounted elsewhere (e.g. the home page hero). */
+
+.sr-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 36px 16px 56px;
+}
+
+.sr-intro { text-align: center; margin-bottom: 22px; }
+.sr-kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 12px; border-radius: 9999px;
+    font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0;
+}
+.sr-intro h1 {
+    margin: 12px 0 6px;
+    font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: -0.02em; color: #111827;
+}
+.sr-howto { color: #6b7280; font-size: 15px; }
+.sr-howto-touch { display: none; }
+@media (hover: none) {
+    .sr-howto-mouse { display: none; }
+    .sr-howto-touch { display: inline; }
+}
+
+/* ---------- Dark stage ---------- */
+
+.sr-stage {
+    --sr-bg: #0b0c0f;
+    position: relative;
+    height: clamp(440px, 72vh, 760px);
+    border-radius: 24px;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse 60% 55% at 50% 38%, rgba(255, 231, 194, .10), transparent 70%),
+        linear-gradient(180deg, #16181d 0%, #101115 72%, #0b0c0f 100%);
+    box-shadow: 0 24px 50px rgba(15, 23, 42, .25);
+    isolation: isolate;
+}
+
+/* ---------- Static wall (first paint + fallback) ---------- */
+
+.sr-poster {
+    position: absolute; inset: 0;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin; scrollbar-color: #374151 transparent;
+    transition: opacity .6s ease, visibility .6s;
+}
+.sr-poster-track {
+    position: relative;
+    display: flex; gap: 56px;
+    height: 100%;
+    padding: 0 48px;
+    width: max-content; min-width: 100%;
+}
+.sr-poster-track::before {                    /* the rail across the whole wall */
+    content: ""; position: absolute; left: 0; right: 0; top: 30%; height: 6px;
+    background: linear-gradient(180deg, #e5e7eb, #9ca3af 55%, #6b7280);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, .5);
+}
+.sr-poster-section { position: relative; display: flex; flex-direction: column; scroll-snap-align: start; }
+.sr-poster-label {                            /* sits just above the rail (rail at 30% of the stage) */
+    margin: 0; height: 30%; box-sizing: border-box;
+    display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 16px;
+    font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #e5e7eb;
+}
+.sr-poster-label::after {
+    content: ""; display: block; width: 36px; height: 3px; margin-top: 8px; background: #22c55e; border-radius: 2px;
+}
+.sr-poster-items { list-style: none; margin: 0; padding: 0; display: flex; gap: 18px; }
+.sr-poster-item a {
+    position: relative; display: flex; flex-direction: column; align-items: center;
+    width: clamp(150px, 22vw, 230px);
+    color: #e5e7eb; text-decoration: none;
+}
+.sr-poster-hook {                              /* wire from the rail */
+    display: block; width: 2px; height: 26px; margin-top: -18px; background: #9ca3af;
+}
+.sr-poster-item img {
+    width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: contain;
+    margin-top: -6px;
+    filter: drop-shadow(0 16px 18px rgba(0, 0, 0, .55));
+    transition: transform .4s ease;
+}
+.sr-poster-item a:hover img, .sr-poster-item a:focus-visible img { transform: translateY(-4px) rotate(-1.5deg); }
+.sr-poster-item a:focus-visible { outline: 3px solid #22c55e; outline-offset: 4px; border-radius: 12px; }
+.sr-poster-name { margin-top: 2px; font-size: 14px; font-weight: 700; text-align: center; }
+.sr-poster-swatches { display: flex; gap: 5px; margin-top: 6px; }
+.sr-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .55); }
+
+/* ---------- 3D mount ---------- */
+
+.sr-mount {
+    position: absolute; inset: 0;
+    opacity: 0; visibility: hidden;            /* shown once the first product is on screen */
+    transition: opacity .7s ease, visibility .7s;
+}
+.sr-stage.is-3d-live .sr-mount { opacity: 1; visibility: visible; }
+.sr-stage.is-3d-live .sr-poster { opacity: 0; visibility: hidden; }
+.sr-stage.is-classic .sr-mount { display: none; }
+
+/* Quiet loading cue on the static wall */
+.sr-stage.is-loading .sr-poster-track::before { animation: sr-rail-pulse 1.6s ease-in-out infinite; }
+@keyframes sr-rail-pulse { 50% { filter: brightness(1.35); } }
+@media (prefers-reduced-motion: reduce) {
+    .sr-stage.is-loading .sr-poster-track::before { animation: none; }
+    .sr-poster-item img { transition: none; }
+}
+
+/* ---------- Start button, slow banner, classic link ---------- */
+
+.sr-start {
+    position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+    z-index: 5;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px; border-radius: 9999px; border: 0;
+    font-size: 14px; font-weight: 700; color: #fff;
+    background: #16a34a; box-shadow: 0 8px 20px rgba(22, 163, 74, .4);
+    cursor: pointer;
+}
+.sr-start:hover { background: #15803d; }
+.sr-start:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
+.sr-start[hidden] { display: none; }
+
+.sr-slow {
+    position: absolute; left: 12px; right: 12px; top: 12px; z-index: 6;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, .96); border: 1px solid #fde68a;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .25);
+    font-size: 14px; color: #374151;
+}
+.sr-slow .fa-hourglass-half { color: #f59e0b; }
+.sr-slow[hidden] { display: none; }
+.sr-slow-close { background: none; border: 0; font-size: 20px; line-height: 1; color: #9ca3af; cursor: pointer; padding: 0 4px; }
+.sr-slow-close:hover { color: #4b5563; }
+
+.sr-classic-note { margin-top: 10px; text-align: center; font-size: 13px; color: #6b7280; }
+.sr-classic-note [hidden] { display: none; }
+.sr-linkbtn {
+    background: none; border: 0; padding: 0; cursor: pointer;
+    font: inherit; font-weight: 600; color: #15803d; text-decoration: underline;
+}
+.sr-linkbtn:hover { color: #166534; }
+.sr-linkbtn:focus-visible { outline: 2px solid #22c55e; outline-offset: 2px; border-radius: 4px; }
+
+/* ---------- Debug (showroom.php?debug=1): outline the static wall too ---------- */
+
+.sr-stage.is-debug .sr-poster-section { outline: 1px dashed rgba(255, 61, 154, .7); }
+.sr-stage.is-debug .sr-poster-item a { outline: 1px solid rgba(96, 165, 250, .6); }
+.sr-stage.is-debug .sr-poster-track::after {      /* display line */
+    content: ""; position: absolute; left: 0; right: 0; top: 58%; border-top: 1px dashed #22c55e;
+}
