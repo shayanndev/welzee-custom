@@ -9,6 +9,10 @@
  * zooms in, the doors swing fully open, the other cupboards fade back behind a dark
  * veil, and the cupboard shows the product's variations (colours for now) as tinted
  * copies on rails, up to CONFIG.variationLayout.perRow per row. Back button / Esc returns.
+ * Click / tap a copy: it lifts off its rail, flies along an arc and shrinks into the
+ * "Your pick" garment bag in the corner (thread sparkle, bag bounce), while the quick
+ * view opens with name, colour and "Customise". Picking another copy sends the first
+ * one back to its rail. Reduced motion: no flight, instant.
  * A featured product without a model shows a locked cupboard with a "Coming soon" plate.
  *
  * Same entry point as the wall (showroom.js): `mountShowroom(container, options)`,
@@ -23,7 +27,8 @@
  * manifest may override it with "showroom": { "cupboards": { ...same keys } }.
  *
  * Events on `container`: showroom:interact (first hover-free interaction),
- * showroom:zoom {id}, showroom:grid.
+ * showroom:zoom {id}, showroom:grid, showroom:pick {product, color},
+ * showroom:pull (quick view open), showroom:release (quick view closed).
  */
 
 import * as THREE from 'three';
@@ -33,7 +38,7 @@ import {
     HEX_RE, GLB_PATH_RE, LOOP_R, CORD_R, TAP_SLOP, num, mergeDeep, mat4, placed, shortName,
     canvasTexture, radialTexture, wallTexture, floorTexture,
     loopGeometry, hookGeometry, hangerGeometry, clipGeometry, normaliseRack, stepHanging,
-    createModelLoader, toBaseFrame, gatherHandles, buildProductParts
+    createModelLoader, toBaseFrame, gatherHandles, buildProductParts, PANEL_CSS, createQuickView
 } from './showroom-common.js';
 
 /* ============================== CONFIG ============================== */
@@ -95,6 +100,14 @@ export const CUPBOARD_CONFIG = {
         cordFill: 0.62,               // caps / bags: copy height / row height
         gap: 0.03,                    // m between a row's hems and the rail below
         stagger: 45                   // ms between copies popping in
+    },
+    pick: {
+        flight: 850,                  // ms, rail -> bag
+        back: 600,                    // ms, bag -> rail
+        arc: 0.3,                     // arc height, fraction of the close-up view height
+        endScale: 0.14,               // size when it drops into the bag
+        bagDepth: 0.55,               // flight end: this fraction of the camera distance
+        reframe: 500                  // ms, camera slides aside for the quick view
     },
     lighting: {
         background: '#0b0c0f',
@@ -395,7 +408,24 @@ function injectStyles() {
 .srm-back:focus-visible{outline:2px solid #22c55e;outline-offset:2px}
 .srm-zoomtitle{margin:0;font:700 12px/1.3 inherit;letter-spacing:.14em;text-transform:uppercase;color:#e5e7eb;text-shadow:0 2px 8px rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .srm-zoomtitle span{color:#9ca3af;font-weight:600;letter-spacing:.08em}
-`;
+.srm-bag{position:absolute;left:16px;bottom:14px;width:64px;display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none;z-index:3;opacity:0;transform:translateY(8px) scale(.9);transition:opacity .3s,transform .3s}
+.srm-root.has-pick .srm-bag{opacity:1;transform:none}
+.srm-bag svg{width:46px;height:58px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55));overflow:visible}
+.srm-bag .srm-bag-dot{fill:var(--pick,#fff)}
+.srm-bag-label{font:700 10px/1 inherit;letter-spacing:.14em;text-transform:uppercase;color:#e5e7eb;text-shadow:0 1px 4px rgba(0,0,0,.7);white-space:nowrap}
+.srm-bag.is-bounce svg{animation:srm-bounce .55s cubic-bezier(.3,1.6,.5,1)}
+@keyframes srm-bounce{0%{transform:scale(1)}30%{transform:scale(1.14,.9)}60%{transform:scale(.95,1.06)}100%{transform:scale(1)}}
+.srm-sparks{position:absolute;left:50%;top:26px;width:0;height:0}
+.srm-sparks i{position:absolute;left:-1px;top:-5px;width:2px;height:10px;border-radius:2px;background:var(--c,#f3d99b);opacity:0}
+.srm-bag.is-sparkle .srm-sparks i{animation:srm-spark .7s ease-out forwards}
+@keyframes srm-spark{0%{opacity:1;transform:rotate(var(--a)) translateY(-6px) scaleY(.6)}100%{opacity:0;transform:rotate(var(--a)) translateY(-34px) scaleY(1)}}
+@media (max-width:719px){
+ .srm-bag{left:auto;right:12px;bottom:auto;top:8px;width:56px}
+ .srm-bag svg{width:38px;height:48px}
+ .srm-zoombar{right:78px}
+}
+@media (prefers-reduced-motion:reduce){.srm-bag.is-bounce svg,.srm-bag.is-sparkle .srm-sparks i{animation:none}}
+` + PANEL_CSS;
     document.head.appendChild(s);
 }
 
@@ -453,6 +483,18 @@ export async function mountShowroom(container, options = {}) {
     const zoomTitle = zoombar.querySelector('.srm-zoomtitle');
     backBtn.tabIndex = -1;
     backBtn.addEventListener('click', () => zoomOut());
+    // "Your pick" garment bag (the picked copy flies into it) + thread sparkle
+    const bag = document.createElement('div');
+    bag.className = 'srm-bag';
+    bag.setAttribute('aria-hidden', 'true');
+    bag.innerHTML = '<svg viewBox="0 0 46 58"><path d="M23 2a4 4 0 0 1 4 4c0 2-2 3-4 4v3" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>' +
+        '<path d="M8 14h30l5 8v30a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22z" fill="#1f2937" stroke="#94a3b8" stroke-width="1.5"/>' +
+        '<path d="M23 15v38" stroke="#64748b" stroke-width="1.2" stroke-dasharray="2 2"/>' +
+        '<rect x="13" y="38" width="20" height="10" rx="2" fill="#c9a15a"/><circle class="srm-bag-dot" cx="23" cy="27" r="6" stroke="#fff" stroke-width="1.5"/></svg>' +
+        '<span class="srm-sparks">' + Array.from({ length: 10 }, (_, i) => `<i style="--a:${i * 36}deg;--c:${['#f3d99b', '#86efac', '#ffffff'][i % 3]}"></i>`).join('') + '</span>' +
+        '<span class="srm-bag-label">Your pick</span>';
+    root.appendChild(bag);
+    const quick = createQuickView(root, { onClose: () => releasePick() });
     let hud = null;
     if (debug) { hud = document.createElement('div'); hud.className = 'srm-hud'; root.appendChild(hud); }
     container.appendChild(root);
@@ -665,7 +707,8 @@ export async function mountShowroom(container, options = {}) {
     let interior = cupboardInterior(cfg, 1);
     // zoom state: zoomT 0 (grid) .. 1 (close-up), zoomDir +1 in / -1 out / 0 still
     let zoomCup = null, zoomView = null, zoomT = 0, zoomDir = 0;
-    const zoomInsets = { right: 0, bottom: 0 };                 // px covered by the quick view (phase C)
+    const zoomInsets = { right: 0, bottom: 0 };                 // px covered by the quick view
+    let reframe = null;                                          // { cam, look, t }: camera slide for the quick view
     const viewSize = () => ({ width: Math.max(1, root.clientWidth), height: Math.max(1, root.clientHeight) });
     function layoutScene() {
         const w = Math.max(1, root.clientWidth), h = Math.max(1, root.clientHeight);
@@ -723,6 +766,11 @@ export async function mountShowroom(container, options = {}) {
         const e = THREE.MathUtils.smootherstep(zoomT, 0, 1);
         if (zoomView && e > 0) { camPos.lerpVectors(gridCam, zoomView.cam, e); camLook.lerpVectors(gridLook, zoomView.look, e); }
         else { camPos.copy(gridCam); camLook.copy(gridLook); }
+        if (reframe && zoomView && e > 0) {                    // quick view opened / closed: slide aside
+            const k = THREE.MathUtils.smootherstep(reframe.t, 0, 1);
+            camPos.lerpVectors(reframe.cam, camPos, k);
+            camLook.lerpVectors(reframe.look, camLook, k);
+        }
         applyCamera();
         if (zoomCup) { zoomCup.fwd = cfg.zoom.forward * e; zoomCup.origin.z = zoomCup.fwd; }
         veil.visible = e > 0.001;
@@ -765,7 +813,7 @@ export async function mountShowroom(container, options = {}) {
 
     // ---------- matrices ----------
     const M = { P: mat4(), S: mat4(), A: mat4(), B: mat4(), T: mat4(), O: mat4(), Z: mat4(), R: mat4() };
-    const _e = new THREE.Euler(), _v = V3(), _q = new THREE.Quaternion(), _s = V3(), _h = V3();
+    const _e = new THREE.Euler(), _v = V3(), _q = new THREE.Quaternion(), _s = V3(), _h = V3(), _c = V3(), _d = V3(), _r = V3();
     const dirty = new Set();
     function writeCupboard(c) {
         const d = geo.dims, O = c.origin;
@@ -805,7 +853,17 @@ export async function mountShowroom(container, options = {}) {
         p.box.makeEmpty();
     }
     function piecePosition(p, out) {
-        return out.copy(p.group.cup.origin).add(p.local);
+        out.copy(p.group.cup.origin).add(p.local);
+        if (p.fly) {                                           // quadratic arc: rail -> bag (follows the bag on screen) or back
+            const f = p.fly;
+            const a = f.from;
+            const b = f.dir > 0 ? bagPoint(f.to) : _r.copy(out);
+            const e = f.dir > 0 ? THREE.MathUtils.smootherstep(f.t, 0, 1) : 1 - Math.pow(1 - f.t, 3);
+            _c.addVectors(a, b).multiplyScalar(0.5).addScaledVector(camera.up, f.arc);
+            const u = 1 - e;
+            out.set(0, 0, 0).addScaledVector(a, u * u).addScaledVector(_c, 2 * u * e).addScaledVector(b, e * e);
+        }
+        return out;
     }
     function writePiece(p) {
         const g = p.group;
@@ -1052,6 +1110,7 @@ export async function mountShowroom(container, options = {}) {
         if (!zoomCup || zoomDir < 0) return;
         const c = zoomCup;
         const hadFocus = root.contains(document.activeElement);
+        releasePick(true);                                     // the pick goes straight back to its rail
         zoomDir = -1;
         setVarHover(null);
         if (armed) { armed.yaw.target = 0; armed = null; }
@@ -1096,12 +1155,79 @@ export async function mountShowroom(container, options = {}) {
         if (p) { poke(p, 0.8); p.yaw.target = Math.PI; }       // swing and turn to the back
         wake();
     }
-    function tapVariation(p, type) {
-        if (type === 'mouse') { poke(p, 0.6); return; }
-        if (armed && armed !== p) armed.yaw.target = 0;        // touch: tap = swing + show the back
-        armed = p;
-        poke(p, 0.8);
-        p.yaw.target = p.yaw.target > 1 ? 0 : Math.PI;
+    function tapVariation(p) { pickPiece(p); }
+
+    // ---------- pick: fly into the bag, quick view ----------
+    let picked = null;
+    const customizeUrl = typeof options.customizeUrl === 'function'
+        ? options.customizeUrl
+        : (id, hex) => `${base}custom_order_3d.php?product=${encodeURIComponent(id)}&color=${encodeURIComponent(hex)}`;
+    /** World point in front of the camera that projects onto the bag's centre. */
+    function bagPoint(out) {
+        const r = canvas.getBoundingClientRect(), b = bag.getBoundingClientRect();
+        const cx = b.left + b.width / 2, cy = b.top + Math.min(b.height, 58) * 0.45;
+        ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+        _d.set(ndc.x, ndc.y, 0.5).unproject(camera).sub(camera.position).normalize();
+        return out.copy(camera.position).addScaledVector(_d, cfg.pick.bagDepth * camPos.distanceTo(camLook));
+    }
+    function startFlight(p, dir) {
+        const view = zoomView ? zoomView.visH : 1;
+        const from = dir > 0 ? piecePosition(p, V3()) : bagPoint(V3());     // out of the bag: start at the bag
+        p.fly = { dir, t: 0, dur: (dir > 0 ? cfg.pick.flight : cfg.pick.back) / 1000, from, to: V3(), arc: cfg.pick.arc * view * (dir > 0 ? 1 : 0.6) };
+        p.swing.a = p.swing.v = p.tilt.a = p.tilt.v = 0;
+        if (dir > 0) p.yaw.target = p.yaw.a + Math.PI * 2;      // one turn on the way
+    }
+    function landInBag(p) {
+        bag.style.setProperty('--pick', p.hex);
+        if (reduced) return;
+        for (const cls of ['is-bounce', 'is-sparkle']) { bag.classList.remove(cls); void bag.offsetWidth; bag.classList.add(cls); }
+    }
+    function pickPiece(p) {
+        if (!p || p.fly || p === picked) return;
+        firstInteraction();
+        if (picked) sendBack(picked);
+        picked = p;
+        if (varHover === p) { varHover = null; root.classList.remove('is-hovering'); }
+        root.classList.add('has-pick');
+        if (reduced) { p.k = p.kTarget = 0; writePiece(p); landInBag(p); }
+        else { startFlight(p, 1); p.kTarget = p.k; }
+        const g = p.group;
+        quick.open({ kicker: 'Your pick', name: g.cup.f.name, hex: p.hex, colorName: p.colorName, href: customizeUrl(g.id, p.hex) });
+        setQuickInsets(true);
+        emit('pick', { product: g.id, color: p.hex });
+        emit('pull', { product: g.id, color: p.hex });
+        wake();
+    }
+    function sendBack(p, instant) {
+        if (!p) return;
+        if (reduced || instant) { p.fly = null; p.k = p.kTarget = 1; p.yaw.a = p.yaw.target = 0; writePiece(p); return; }
+        if (p.fly && p.fly.dir > 0) {                          // still flying in: turn around from where it is
+            const from = piecePosition(p, V3());
+            p.fly = { dir: -1, t: 0, dur: cfg.pick.back / 1000, from, to: V3(), arc: 0.05 };
+        } else startFlight(p, -1);
+        p.yaw.a = p.yaw.a % (Math.PI * 2); p.yaw.target = 0;
+    }
+    /** Quick view closed (button, Esc, tap outside): the copy returns to its rail. */
+    function releasePick(instant) {
+        if (!picked && !quick.isOpen()) return;
+        const p = picked;
+        picked = null;
+        sendBack(p, instant);
+        quick.close();
+        root.classList.remove('has-pick');
+        setQuickInsets(false);
+        emit('release');
+        wake();
+    }
+    /** Keep the zoomed cupboard clear of the quick view: side panel (wide) or bottom sheet (phones). */
+    function setQuickInsets(on) {
+        const w = root.clientWidth;
+        const right = on && w >= 720 ? Math.min(300, w - 32) + 32 : 0;
+        const bottom = on && w < 720 ? quick.el.offsetHeight + 24 : 0;
+        if (right === zoomInsets.right && bottom === zoomInsets.bottom) return;
+        if (zoomCup && zoomT > 0) reframe = { cam: camPos.clone(), look: camLook.clone(), t: reduced ? 1 : 0 };
+        zoomInsets.right = right; zoomInsets.bottom = bottom;
+        if (zoomCup) zoomView = computeZoomView(cfg, L, zoomCup.cell, viewSize(), zoomInsets);
         wake();
     }
 
@@ -1126,6 +1252,7 @@ export async function mountShowroom(container, options = {}) {
             if (zoomDir < 0) return;
             const p = pickVariation(e.clientX, e.clientY);
             if (p) { tapVariation(p, e.pointerType || 'mouse'); return; }
+            if (quick.isOpen()) { releasePick(); return; }        // first tap outside closes the quick view
             if (!pickCupboard(e.clientX, e.clientY)) zoomOut();   // tap on the dimmed stage: back to the grid
             return;
         }
@@ -1135,7 +1262,8 @@ export async function mountShowroom(container, options = {}) {
     });
     const onDocKey = (e) => {
         if (e.key !== 'Escape') return;
-        if (zoomCup) zoomOut();
+        if (quick.isOpen()) releasePick();
+        else if (zoomCup) zoomOut();
         else if (opened) { opened = null; refreshDoors(); }
     };
     document.addEventListener('keydown', onDocKey);
@@ -1204,11 +1332,31 @@ export async function mountShowroom(container, options = {}) {
             active = true;
         }
 
-        // hanging pieces (swing, turn, pop in / out)
+        // camera slide for the quick view
+        if (reframe) {
+            reframe.t = Math.min(1, reframe.t + dt / (cfg.pick.reframe / 1000));
+            if (zoomDir === 0) poseCamera();
+            if (reframe.t >= 1) reframe = null;
+            active = true;
+        }
+
+        // hanging pieces (swing, turn, pop in / out, fly to the bag and back)
         for (const g of groups) {
             if (!g.ready) continue;
             for (const p of g.pieces) {
-                let moving = stepHanging(p, dt);
+                if (p.fly) {
+                    const f = p.fly;
+                    f.t = Math.min(1, f.t + dt / f.dur);
+                    const e = f.dir > 0 ? f.t * f.t : 1 - Math.pow(1 - f.t, 2);
+                    p.k = p.kTarget = f.dir > 0 ? 1 + (cfg.pick.endScale - 1) * e : cfg.pick.endScale + (1 - cfg.pick.endScale) * e;
+                    if (f.t >= 1) {
+                        p.fly = null;
+                        if (f.dir > 0) { p.k = p.kTarget = picked === p ? 0 : 1; if (picked === p) landInBag(p); }
+                        else { p.k = p.kTarget = 1; p.yaw.a = p.yaw.target = 0; poke(p, 0.5); }
+                    }
+                    spheres = true;
+                }
+                let moving = stepHanging(p, dt) || !!p.fly;
                 if (p.k !== p.kTarget) {
                     if (p.delay > 0) p.delay -= dt;
                     else {
