@@ -8,6 +8,158 @@
     "garmentTop": 0.07,
     "displayLine": 0.47
   },
+  "showroom": {
+    "comment": "Showroom (showroom.php). featured = the six cupboards in order (assets/js/3d/showroom-cupboards.js; a product without a model shows as Coming soon). Wall layout (showroom.php?layout=wall, assets/js/3d/showroom.js): section order, labels, products and colour sets. productScale = display size per product (1 = real size). Layout, framing, camera, lighting and tour defaults live at the top of showroom.js and can be overridden here with the same keys.",
+    "productScale": {
+      "cap": 1.7,
+      "visor": 1.7,
+      "bag": 1.15
+    },
+    "featured": [
+      "tshirt",
+      "polo",
+      "hoodie",
+      "varsity",
+      "cap",
+      "apron"
+    ],
+    "sections": [
+      {
+        "id": "tees",
+        "label": "Tees & Polos",
+        "items": [
+          {
+            "product": "tshirt",
+            "colors": [
+              "#f8f8f6",
+              "#15171a",
+              "#9ca3af",
+              "#b91c1c",
+              "#1d4ed8"
+            ]
+          },
+          {
+            "product": "polo",
+            "colors": [
+              "#1f2a44",
+              "#f4f4f2",
+              "#14532d",
+              "#6b1d2a",
+              "#7cb9e8"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "hoodies",
+        "label": "Hoodies",
+        "items": [
+          {
+            "product": "hoodie",
+            "colors": [
+              "#3a3d42",
+              "#121316",
+              "#c8b79a",
+              "#556b2f",
+              "#1f2a44",
+              "#6b1d2a",
+              "#9ca3af",
+              "#14532d",
+              "#f4f4f2"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "jackets",
+        "label": "Jackets",
+        "items": [
+          {
+            "product": "varsity",
+            "colors": [
+              "#1f2a44",
+              "#15171a",
+              "#6b1d2a",
+              "#14532d",
+              "#1d4ed8",
+              "#b91c1c",
+              "#3a3d42",
+              "#556b2f",
+              "#5b2a86"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "caps",
+        "label": "Caps & Visors",
+        "items": [
+          {
+            "product": "cap",
+            "colors": [
+              "#1f2a44",
+              "#15171a",
+              "#b91c1c",
+              "#f4f4f2",
+              "#c3b091",
+              "#556b2f"
+            ]
+          },
+          {
+            "product": "visor",
+            "colors": [
+              "#87ceeb",
+              "#f4f4f2",
+              "#15171a",
+              "#1f2a44",
+              "#e8a0b4"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bags",
+        "label": "Bags",
+        "items": [
+          {
+            "product": "bag",
+            "colors": [
+              "#e8dcc4",
+              "#15171a",
+              "#1f2a44",
+              "#556b2f",
+              "#b91c1c",
+              "#6b1d2a",
+              "#c8b79a",
+              "#14532d",
+              "#7cb9e8"
+            ]
+          }
+        ]
+      }
+    ],
+    "colorNames": {
+      "#f8f8f6": "White",
+      "#f4f4f2": "White",
+      "#15171a": "Black",
+      "#121316": "Black",
+      "#9ca3af": "Heather Grey",
+      "#b91c1c": "Red",
+      "#1d4ed8": "Royal Blue",
+      "#1f2a44": "Navy",
+      "#14532d": "Forest Green",
+      "#6b1d2a": "Burgundy",
+      "#7cb9e8": "Sky Blue",
+      "#87ceeb": "Sky Blue",
+      "#3a3d42": "Charcoal",
+      "#c8b79a": "Sand",
+      "#556b2f": "Olive",
+      "#c3b091": "Khaki",
+      "#e8a0b4": "Pink",
+      "#e8dcc4": "Natural",
+      "#5b2a86": "Purple"
+    }
+  },
   "products": {
     "tshirt": {
       "name": "Custom T-Shirt",
