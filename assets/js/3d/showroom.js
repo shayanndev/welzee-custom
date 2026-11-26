@@ -36,6 +36,12 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import { createProceduralProduct } from './procedural.js';
+import {
+    EPS, HEX_RE, GLB_PATH_RE, LOOP_R, CORD_R, TAP_SLOP, num, mergeDeep, jitter, mat4, placed,
+    canvasTexture, radialTexture, wallTexture, floorTexture, sheenTexture,
+    loopGeometry, hookGeometry, hangerGeometry, clipGeometry, normaliseRack, stepHanging,
+    createModelLoader, toBaseFrame, gatherHandles, buildProductParts, PANEL_CSS, createQuickView
+} from './showroom-common.js';
 
 /* ============================== CONFIG ============================== */
 
@@ -113,52 +119,10 @@ export const SHOWROOM_CONFIG = {
 
 /* ============================ constants ============================= */
 
-const SWING_W = 2 * Math.PI * 0.85;           // same pendulum as rack.js
-const SWING_ZETA = 0.16;
-const SWING_K = SWING_W * SWING_W;
-const SWING_C = 2 * SWING_ZETA * SWING_W;
-const TILT_K = SWING_K * 1.35;
-const YAW_W = 7;
-const YAW_K = YAW_W * YAW_W;
-const YAW_C = 2 * YAW_W;
-const EPS = 0.0006;
-const HARDWARE_RE = /zipper|metal|hardware|eyelet|puller|button|slider|aglet|teeth|cord_end/i;
-const HEX_RE = /^#[0-9a-fA-F]{6}$/;
-const GLB_PATH_RE = /^assets\/models\/(?:[A-Za-z0-9_-]+\/)?[A-Za-z0-9_-]+\.glb$/;
-const GARMENT_CATEGORIES = new Set(['tees_polos', 'hoodies', 'jackets']);
-const LOOP_R = 0.022;                          // rail loop radius (m); rail radius 0.016
-const LOOP_ARC = Math.PI * 1.35;
-const LOOP_START = Math.PI * 1.5 - LOOP_ARC;   // arc ends straight below the rail
-const CORD_R = 0.0016;
-const TAP_SLOP = 6;                            // px before a press becomes a drag
 const LABEL_ROW = 96, LABEL_FONT = 46, LABEL_PAD = 20;   // title atlas: px per row / font / side padding
 const CULL_MARGIN = 0.3;                       // m beyond the view edges still packed into the draw
-
-const num = (v, d) => (typeof v === 'number' && isFinite(v) ? v : d);
 const clamp = THREE.MathUtils.clamp;
 const smooth = THREE.MathUtils.smoothstep;
-
-function mergeDeep(base, extra) {
-    if (!extra || typeof extra !== 'object') return base;
-    const out = Array.isArray(base) ? base.slice() : { ...base };
-    for (const k of Object.keys(extra)) {
-        const v = extra[k];
-        if (v && typeof v === 'object' && !Array.isArray(v) && base[k] && typeof base[k] === 'object' && !Array.isArray(base[k])) {
-            out[k] = mergeDeep(base[k], v);
-        } else if (v !== undefined) {
-            out[k] = v;
-        }
-    }
-    return out;
-}
-
-/** Deterministic value in [-1, 1] per piece index (gentle size variation). */
-function jitter(i) {
-    const s = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
-    return (s - Math.floor(s)) * 2 - 1;
-}
-
-const mat4 = () => new THREE.Matrix4();
 
 /* ====================== layout (pure, testable) ===================== */
 
@@ -184,17 +148,7 @@ export function layoutWall(cfg, products) {
             if (!conf) return;
             let g = groups.get(id);
             if (!g) {
-                const rack = Object.assign({}, conf.rack || {});
-                const type = rack.type || (GARMENT_CATEGORIES.has(conf.category) ? 'hanger' : 'cord');
-                rack.frontSize = Array.isArray(rack.frontSize) ? rack.frontSize : [num(conf.targetHeight, 0.6), num(conf.targetHeight, 0.6)];
-                if (type === 'hanger' && !(Array.isArray(rack.hangerProfile) && rack.hangerProfile.length > 1)) {
-                    const [w, h] = rack.frontSize;
-                    rack.hangerProfile = [[0, h * 0.93], [w * 0.12, h * 0.92], [w * 0.33, h * 0.87]];
-                }
-                if (type === 'cord') {
-                    rack.attach = Array.isArray(rack.attach) ? rack.attach : [0, rack.frontSize[1], 0];
-                    rack.centerY = num(rack.centerY, rack.frontSize[1] / 2);
-                }
+                const { rack, type } = normaliseRack(conf);
                 const scale = clamp(num(cfg.productScale && cfg.productScale[id], 1), 0.3, 3);
                 g = { id, conf, rack, type, scale, pieces: [], parts: [], slots: [], hanger: null, ready: false };
                 groups.set(id, g);
@@ -244,7 +198,7 @@ export function layoutWall(cfg, products) {
             p.centreBelow = L.hookLength + p.s * (A[1] - r.frontSize[1] / 2);
         } else {
             p.cIdx = nCord++;
-            g.clip = ['ring', 'clip', 'hook'].includes(r.clip) ? r.clip : 'ring';
+            g.clip = r.clip;
             p.kIdx = clipCount[g.clip]++;
             const above = p.s * (r.attach[1] - r.centerY);
             p.cordLen = Math.max(0.05, L.railDrop - above);
@@ -333,137 +287,9 @@ function injectStyles() {
 .srm-root.is-pulled .srm-nav button,.srm-root.is-intro .srm-nav button{pointer-events:none}
 .srm-hint{position:absolute;left:50%;top:14px;transform:translateX(-50%);padding:7px 14px;border-radius:999px;background:rgba(17,19,23,.7);color:#d1d5db;font:500 12px/1.2 inherit;pointer-events:none;transition:opacity .5s;opacity:0}
 .srm-root.show-hint .srm-hint{opacity:1}
-.srm-panel{position:absolute;top:16px;right:16px;bottom:16px;width:300px;max-width:calc(100% - 32px);max-height:520px;margin:auto 0;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:22px 20px;border-radius:18px;background:rgba(14,16,20,.88);border:1px solid rgba(255,255,255,.12);color:#f3f4f6;box-shadow:0 20px 40px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transform:translateX(24px);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
-.srm-root.is-pulled .srm-panel{opacity:1;transform:none;pointer-events:auto}
-.srm-kicker{margin:0;font:700 11px/1 inherit;letter-spacing:.12em;text-transform:uppercase;color:#86efac}
-.srm-name{margin:0;font:800 22px/1.2 inherit;color:#fff}
-.srm-color{margin:0;display:flex;align-items:center;gap:8px;font:500 14px/1.3 inherit;color:#d1d5db}
-.srm-swatch{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.7);flex:0 0 auto}
-.srm-cta{margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:12px;background:#16a34a;color:#fff;font:700 15px/1 inherit;text-decoration:none}
-.srm-cta:hover{background:#15803d}
-.srm-cta:focus-visible{outline:3px solid #86efac;outline-offset:2px}
-.srm-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(255,255,255,.08);color:#e5e7eb;font-size:20px;line-height:1;cursor:pointer}
-.srm-close:hover{background:rgba(255,255,255,.16)}
-.srm-close:focus-visible{outline:2px solid #22c55e}
-@media (max-width:719px){
- .srm-panel{top:auto;left:12px;right:12px;bottom:12px;width:auto;max-width:none;max-height:none;margin:0;padding:16px 16px 18px;gap:8px;transform:translateY(24px)}
- .srm-name{font-size:18px}
-}
 .srm-hud{position:absolute;top:8px;right:8px;font:11px/1.35 ui-monospace,Menlo,Consolas,monospace;color:#a7f3d0;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:6px;pointer-events:none;white-space:pre;z-index:9}
-`;
+` + PANEL_CSS;
     document.head.appendChild(s);
-}
-
-/* ============================ textures ============================== */
-
-function canvasTexture(w, h, draw, opts = {}) {
-    const c = document.createElement('canvas');
-    c.width = w; c.height = h;
-    draw(c.getContext('2d'), w, h);
-    const t = new THREE.CanvasTexture(c);
-    t.colorSpace = THREE.SRGBColorSpace;
-    if (opts.repeat) { t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.RepeatWrapping; }
-    if (opts.noMips) { t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; }
-    return t;
-}
-const radialTexture = () => canvasTexture(128, 128, (x, w) => {
-    const g = x.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2);
-    g.addColorStop(0, 'rgba(255,255,255,1)');
-    g.addColorStop(0.45, 'rgba(255,255,255,0.45)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    x.fillStyle = g; x.fillRect(0, 0, w, w);
-});
-const wallTexture = () => canvasTexture(512, 256, (x, w, h) => {
-    x.fillStyle = '#ffffff'; x.fillRect(0, 0, w, h);
-    for (let i = 0; i < 2600; i++) {               // fine plaster grain
-        x.fillStyle = `rgba(0,0,0,${Math.random() * 0.05})`;
-        x.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5);
-    }
-    for (const sx of [0, w / 2]) {                 // two panels per tile: shadow + highlight seam
-        x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(sx, 0, 3, h);
-        x.fillStyle = 'rgba(255,255,255,0.25)'; x.fillRect(sx + 3, 0, 1, h);
-    }
-}, { repeat: true });
-const floorTexture = () => canvasTexture(512, 512, (x, w, h) => {
-    const rows = 8, rh = h / rows;
-    for (let r = 0; r < rows; r++) {               // planks along the wall
-        const off = (r % 2) * w * 0.37;
-        for (let k = -1; k < 3; k++) {
-            const v = 150 + Math.floor(Math.random() * 60);
-            x.fillStyle = `rgb(${v},${v - 6},${v - 14})`;
-            x.fillRect(off + k * w * 0.62, r * rh, w * 0.62 - 2, rh - 2);
-        }
-        x.fillStyle = 'rgba(0,0,0,0.5)'; x.fillRect(0, r * rh + rh - 2, w, 2);
-    }
-}, { repeat: true });
-const sheenTexture = () => canvasTexture(256, 256, (x, w, h) => {
-    const g = x.createLinearGradient(0, h, w, 0);
-    g.addColorStop(0.0, 'rgba(255,255,255,0)');
-    g.addColorStop(0.42, 'rgba(255,255,255,0)');
-    g.addColorStop(0.5, 'rgba(255,255,255,0.9)');
-    g.addColorStop(0.56, 'rgba(255,255,255,0)');
-    g.addColorStop(0.66, 'rgba(255,255,255,0.35)');
-    g.addColorStop(0.7, 'rgba(255,255,255,0)');
-    x.fillStyle = g; x.fillRect(0, 0, w, h);
-});
-
-/* ============================ geometry ============================== */
-
-function placed(geo, m) { geo.applyMatrix4(m); return geo; }
-
-/** Rail loop (arc around the rail, ends straight below it), at the origin. */
-function loopGeometry(tube) {
-    const g = new THREE.TorusGeometry(LOOP_R, tube, 8, 24, LOOP_ARC);
-    return placed(g, mat4().makeRotationFromEuler(new THREE.Euler(0, Math.PI / 2, LOOP_START)));
-}
-
-/** Garment hook in spin space: rail loop + wire neck down to the hanger centre + nut. */
-function hookGeometry(hookLength) {
-    const wire = 0.0035;
-    const neckLen = hookLength - LOOP_R;
-    const neck = placed(new THREE.CylinderGeometry(wire, wire, neckLen, 8), mat4().makeTranslation(0, -LOOP_R - neckLen / 2, 0));
-    const nut = placed(new THREE.CylinderGeometry(0.006, 0.006, 0.012, 10), mat4().makeTranslation(0, -hookLength + 0.004, 0));
-    return BufferGeometryUtils.mergeGeometries([loopGeometry(wire), neck, nut]);
-}
-
-/** Wooden hanger following the measured shoulder line (model base frame), like rack.js. */
-function hangerGeometry(rack) {
-    const parts = [];
-    const z = num(rack.hangerZ, 0);
-    const prof = rack.hangerProfile;
-    const H = 0.022, T = 0.011;
-    for (const sgn of [1, -1]) {
-        for (let i = 0; i + 1 < prof.length; i++) {
-            const ax = sgn * prof[i][0], ay = prof[i][1], bx = sgn * prof[i + 1][0], by = prof[i + 1][1];
-            const len = Math.hypot(bx - ax, by - ay);
-            if (len < 1e-4) continue;
-            const m = mat4().makeRotationZ(Math.atan2(by - ay, bx - ax)).setPosition((ax + bx) / 2, (ay + by) / 2 - H / 2, z);
-            parts.push(placed(new THREE.BoxGeometry(len, H, T), m));
-        }
-        for (let i = 1; i < prof.length; i++) {
-            const m = mat4().makeRotationX(Math.PI / 2).setPosition(sgn * prof[i][0], prof[i][1] - H / 2, z);
-            parts.push(placed(new THREE.CylinderGeometry(H / 2, H / 2, T, 12), m));
-        }
-    }
-    return BufferGeometryUtils.mergeGeometries(parts);
-}
-
-/** Ring (cap), spring clip (visor) or J-hook (bag) at the attach point, like rack.js. */
-function clipGeometry(kind) {
-    if (kind === 'clip') {
-        return BufferGeometryUtils.mergeGeometries([
-            placed(new THREE.BoxGeometry(0.014, 0.018, 0.0025), mat4().makeTranslation(0, -0.004, 0.004)),
-            placed(new THREE.BoxGeometry(0.014, 0.018, 0.0025), mat4().makeTranslation(0, -0.004, -0.004)),
-            placed(new THREE.CylinderGeometry(0.004, 0.004, 0.012, 10), mat4().makeRotationX(Math.PI / 2).setPosition(0, 0.007, 0))
-        ]);
-    }
-    if (kind === 'hook') {
-        return BufferGeometryUtils.mergeGeometries([
-            placed(new THREE.TorusGeometry(0.012, 0.0028, 8, 18, Math.PI), mat4().makeRotationZ(Math.PI).setPosition(0.012, 0.006, 0)),
-            placed(new THREE.CylinderGeometry(0.0028, 0.0028, 0.024, 8), mat4().makeTranslation(0, 0.018, 0))
-        ]);
-    }
-    return placed(new THREE.TorusGeometry(0.008, 0.0018, 8, 24), mat4().makeTranslation(0, 0.006, 0));
 }
 
 /* ============================ the module ============================ */
@@ -532,17 +358,7 @@ export async function mountShowroom(container, options = {}) {
     nav.setAttribute('aria-label', 'Showroom sections');
     root.appendChild(nav);
 
-    const panel = document.createElement('div');
-    panel.className = 'srm-panel';
-    panel.setAttribute('role', 'dialog');
-    panel.setAttribute('aria-label', 'Selected piece');
-    panel.innerHTML = '<button type="button" class="srm-close" aria-label="Put it back">&times;</button>' +
-        '<p class="srm-kicker"></p><h3 class="srm-name"></h3>' +
-        '<p class="srm-color"><span class="srm-swatch"></span><span class="srm-color-name"></span></p>' +
-        '<a class="srm-cta" href="#">Customise <span aria-hidden="true">&rarr;</span></a>';
-    root.appendChild(panel);
-    panel.inert = true;                   // not focusable while closed
-    panel.setAttribute('aria-hidden', 'true');
+    const quick = createQuickView(root, { onClose: () => putBack() });
     let hud = null;
     if (debug) { hud = document.createElement('div'); hud.className = 'srm-hud'; root.appendChild(hud); }
     container.appendChild(root);
@@ -885,88 +701,14 @@ export async function mountShowroom(container, options = {}) {
     }
 
     // ---------- model loading (once per product; nearest sections first) ----------
-    let dracoLoader = null;
-    async function readGlbExtensions(url) {
-        try {
-            const head = await fetch(url, { headers: { Range: 'bytes=0-19' } });
-            if (head.status !== 206 && head.status !== 200) return [];
-            const view = new DataView(await head.arrayBuffer());
-            if (view.byteLength < 20 || view.getUint32(0, true) !== 0x46546C67) return [];
-            const len = view.getUint32(12, true);
-            if (view.getUint32(16, true) !== 0x4E4F534A || len <= 0) return [];
-            const json = await fetch(url, { headers: { Range: `bytes=20-${20 + len - 1}` } });
-            if (json.status !== 206 && json.status !== 200) return [];
-            const parsed = JSON.parse(new TextDecoder('utf-8').decode(await json.arrayBuffer()));
-            return parsed.extensionsUsed || parsed.extensionsRequired || [];
-        } catch (e) {
-            return [];
-        }
-    }
-    async function loadGLB(path) {
-        const url = base + path + (path.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(version);
-        const exts = await readGlbExtensions(url);
-        const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-        const loader = new GLTFLoader();
-        if (exts.includes('KHR_draco_mesh_compression')) {
-            if (!dracoLoader) {
-                const { DRACOLoader } = await import('three/addons/loaders/DRACOLoader.js');
-                dracoLoader = new DRACOLoader();
-                dracoLoader.setDecoderPath(base + 'assets/js/3d/lib/draco/gltf/');
-            }
-            loader.setDRACOLoader(dracoLoader);
-        }
-        if (exts.includes('EXT_meshopt_compression')) {
-            const { MeshoptDecoder } = await import('./lib/meshopt/meshopt_decoder.module.js');
-            loader.setMeshoptDecoder(MeshoptDecoder);
-        }
-        if (exts.includes('KHR_texture_basisu')) {
-            const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
-            const ktx2 = new KTX2Loader();
-            ktx2.setTranscoderPath(base + 'assets/js/3d/lib/basis/');
-            ktx2.detectSupport(renderer);
-            loader.setKTX2Loader(ktx2);
-        }
-        const gltf = await loader.loadAsync(url);
-        return gltf.scene || gltf.scenes[0];
-    }
-    function toBaseFrame(model, conf) {                       // same as rack.js
-        if (typeof conf.frontRotation === 'number' && conf.frontRotation !== 0) model.rotation.y += (conf.frontRotation * Math.PI) / 180;
-        model.updateMatrixWorld(true);
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        if (size.y > 1e-6) model.scale.multiplyScalar(num(conf.targetHeight, 0.7) / size.y);
-        model.updateMatrixWorld(true);
-        box.setFromObject(model);
-        const c = box.getCenter(new THREE.Vector3());
-        model.position.x -= c.x; model.position.z -= c.z; model.position.y -= box.min.y;
-        model.updateMatrixWorld(true);
-    }
-    function gatherHandles(model, top) {                      // same as rack.js
-        const y0 = top * 0.64, v = new THREE.Vector3();
-        model.traverse((child) => {
-            if (!child.isMesh || !/handle/i.test(child.material?.name || '')) return;
-            child.geometry = child.geometry.clone();
-            const m = child.matrixWorld, inv = m.clone().invert();
-            const pos = child.geometry.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                v.fromBufferAttribute(pos, i).applyMatrix4(m);
-                v.z *= 1 - 0.85 * smooth(v.y, y0, top);
-                v.applyMatrix4(inv);
-                pos.setXYZ(i, v.x, v.y, v.z);
-            }
-            pos.needsUpdate = true;
-            child.geometry.computeVertexNormals();
-            child.geometry.computeBoundingBox();
-            child.geometry.computeBoundingSphere();
-        });
-    }
+    const models = createModelLoader({ base, version, renderer });
 
     let productsShown = false, destroyed = false;
     async function loadGroup(g) {
         let model = null;
         const path = typeof g.conf.glb === 'string' && GLB_PATH_RE.test(g.conf.glb) ? g.conf.glb : '';
         if (path) {
-            try { model = await loadGLB(path); } catch (err) {
+            try { model = await models.load(path); } catch (err) {
                 if (options.onModelError) options.onModelError(g.id, err);
                 console.warn(`[Welzee Showroom] ${g.id}: model unavailable, using placeholder.`, err);
             }
@@ -977,29 +719,9 @@ export async function mountShowroom(container, options = {}) {
         if (g.type === 'cord' && g.rack.gatherHandles) gatherHandles(model, num(g.conf.targetHeight, 0.5));
         model.updateMatrixWorld(true);
 
-        const fixed = (g.conf.fixedMaterialColors && typeof g.conf.fixedMaterialColors === 'object') ? g.conf.fixedMaterialColors : {};
         const capacity = g.pieces.length;
-        model.traverse((child) => {
-            if (!child.isMesh || !child.geometry) return;
-            const geo = child.geometry;
-            if (!geo.attributes.normal) geo.computeVertexNormals();
-            const src = Array.isArray(child.material) ? child.material[0] : child.material;
-            const mat = src.clone();
-            mat.flatShading = false;
-            const name = src.name || '';
-            const fixedHex = typeof fixed[name] === 'string' && HEX_RE.test(fixed[name]) ? fixed[name] : null;
-            const original = src.color ? '#' + src.color.getHexString() : '#ffffff';
-            const policy = fixedHex ? fixedHex : (HARDWARE_RE.test(name) ? original : null);   // null = tint
-            if (mat.color) mat.color.set('#ffffff');                                         // instance colour decides
-            const mesh = new THREE.InstancedMesh(geo, mat, capacity);
-            mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-            mesh.setColorAt(0, _col.set('#ffffff'));                                         // creates instanceColor
-            mesh.count = 0;
-            mesh.visible = false;
-            scene.add(mesh);
-            g.parts.push({ mesh, policy, local: child.matrixWorld.clone() });
-            disposables.push(mat, geo);
-        });
+        g.parts = buildProductParts(model, g.conf, capacity, disposables);
+        for (const part of g.parts) scene.add(part.mesh);
         if (g.type === 'hanger') {
             const hg = hangerGeometry(g.rack);
             g.hanger = new THREE.InstancedMesh(hg, g.rack.hangerStyle === 'metal' ? darkMat : woodMat, capacity);
@@ -1100,13 +822,6 @@ export async function mountShowroom(container, options = {}) {
         if (p) { poke(p); showBack(p, true); }
     }
 
-    const panelKicker = panel.querySelector('.srm-kicker');
-    const panelName = panel.querySelector('.srm-name');
-    const panelSwatch = panel.querySelector('.srm-swatch');
-    const panelColor = panel.querySelector('.srm-color-name');
-    const panelCta = panel.querySelector('.srm-cta');
-    panel.querySelector('.srm-close').addEventListener('click', () => putBack());
-
     function pullForward(p) {
         if (!p || !p.ready) return;
         stopTour();
@@ -1117,16 +832,7 @@ export async function mountShowroom(container, options = {}) {
         p.pullTarget = 1;
         p.yaw.target = 0;                                     // face the camera first
         camVel = 0; camGoal = null; snapPending = false;
-        panelKicker.textContent = p.sectionLabel;
-        panelName.textContent = p.group.conf.name || p.group.id;
-        panelSwatch.style.background = p.hex;
-        panelColor.textContent = p.colorName;
-        panelCta.href = customizeUrl(p.group.id, p.hex);
-        panelCta.setAttribute('aria-label', `Customise ${panelName.textContent} in ${p.colorName}`);
-        root.classList.add('is-pulled');
-        panel.inert = false;
-        panel.removeAttribute('aria-hidden');
-        setTimeout(() => { if (pulled === p) panelCta.focus({ preventScroll: true }); }, 350);
+        quick.open({ kicker: p.sectionLabel, name: p.group.conf.name || p.group.id, hex: p.hex, colorName: p.colorName, href: customizeUrl(p.group.id, p.hex) });
         poke(p, 0.4);
         cull(true);
         emit('pull', { product: p.group.id, color: p.hex });
@@ -1139,9 +845,7 @@ export async function mountShowroom(container, options = {}) {
         p.pullTarget = 0;
         // turn back to the nearest front angle, not through many spins
         p.yaw.target = p.idleYaw + Math.round((p.yaw.a - p.idleYaw) / (2 * Math.PI)) * 2 * Math.PI;
-        root.classList.remove('is-pulled');
-        panel.inert = true;
-        panel.setAttribute('aria-hidden', 'true');
+        quick.close();
         if (!silent) { root.focus({ preventScroll: true }); emit('release'); }
         wake();
     }
@@ -1156,7 +860,7 @@ export async function mountShowroom(container, options = {}) {
         const rw = root.clientWidth || 1, rh = root.clientHeight || 1;
         let offX = 0, offY = 0;
         if (rw >= 720) offX = -(Math.min(300, rw - 32) + 16) / rw * visW / 2;    // keep clear of the side panel
-        else offY = (panel.offsetHeight + 24) / rh * visH / 2;                  // and of the bottom sheet
+        else offY = (quick.el.offsetHeight + 24) / rh * visH / 2;                  // and of the bottom sheet
         out.copy(camera.position).addScaledVector(_dir, d).addScaledVector(_right, offX).addScaledVector(_up, offY);
         out.y += p.centreBelow;
         return out;
@@ -1377,18 +1081,9 @@ export async function mountShowroom(container, options = {}) {
             raf = requestAnimationFrame(tick);
         }
     }
-    function spring(s, target, k, c, h) { s.v += (-k * (s.a - target) - c * s.v) * h; s.a += s.v * h; }
     const _target = new THREE.Vector3();
     function stepPiece(p, dt) {
-        const n = 2, h = dt / n;
-        for (let i = 0; i < n; i++) {
-            spring(p.swing, 0, SWING_K, SWING_C, h);
-            spring(p.tilt, 0, TILT_K, SWING_C, h);
-            spring(p.yaw, p.yaw.target, YAW_K, YAW_C, h);
-        }
-        let moving = Math.abs(p.swing.a) > EPS || Math.abs(p.swing.v) > EPS || Math.abs(p.tilt.a) > EPS ||
-            Math.abs(p.tilt.v) > EPS || Math.abs(p.yaw.a - p.yaw.target) > EPS || Math.abs(p.yaw.v) > EPS;
-        if (!moving) { p.swing.a = p.swing.v = p.tilt.a = p.tilt.v = p.yaw.v = 0; p.yaw.a = p.yaw.target; }
+        let moving = stepHanging(p, dt);
         // pull toward the camera / back to the rail
         let pulling = false;
         if (p.pull !== p.pullTarget || p === pulled) {
@@ -1584,7 +1279,7 @@ export async function mountShowroom(container, options = {}) {
             for (const d of disposables) { try { d.dispose(); } catch (e) { /* ignore */ } }
             for (const d of doors) d.edge.geometry.dispose();
             if (debugLines) debugLines.geometry.dispose();
-            if (dracoLoader) dracoLoader.dispose();
+            models.dispose();
             renderer.dispose();
             if (renderer.forceContextLoss) renderer.forceContextLoss();
             root.remove();

@@ -9,12 +9,20 @@
     "displayLine": 0.47
   },
   "showroom": {
-    "comment": "Showroom wall (showroom.php / assets/js/3d/showroom.js). Section order, labels, products and colour sets. productScale = display size per product (1 = real size). Layout, framing, camera, lighting and tour defaults live at the top of showroom.js and can be overridden here with the same keys.",
+    "comment": "Showroom (showroom.php). featured = the six cupboards in order (assets/js/3d/showroom-cupboards.js; a product without a model shows as Coming soon). Wall layout (showroom.php?layout=wall, assets/js/3d/showroom.js): section order, labels, products and colour sets. productScale = display size per product (1 = real size). Layout, framing, camera, lighting and tour defaults live at the top of showroom.js and can be overridden here with the same keys.",
     "productScale": {
       "cap": 1.7,
       "visor": 1.7,
       "bag": 1.15
     },
+    "featured": [
+      "tshirt",
+      "polo",
+      "hoodie",
+      "varsity",
+      "cap",
+      "apron"
+    ],
     "sections": [
       {
         "id": "tees",

@@ -1,10 +1,11 @@
 <?php
 // showroom.php
-// Showroom hero (full-bleed, the future home-page hero): dark stage, spotlights, one rail
-// with labelled sections, and an editable headline overlay (left column or top block).
-// Poster first: a static wall (product photos on a CSS rail) is the first paint and
-// the plain fallback. The WebGL wall (assets/js/3d/showroom.js) starts after load;
-// low-spec / Save-Data devices tap "Explore in 3D". Not indexed, not linked.
+// Showroom hero (full-bleed, the future home-page hero) on the dark stage.
+//   default:            six wooden display cupboards (assets/js/3d/showroom-cupboards.js)
+//   ?layout=wall:       the long wall with sections and a headline overlay (assets/js/3d/showroom.js)
+// Poster first: a static version (product photos) is the first paint and the plain
+// fallback; the WebGL scene starts after load. Low-spec / Save-Data devices tap
+// "Explore in 3D". Not indexed, not linked.
 
 header('X-Robots-Tag: noindex, nofollow');
 require_once __DIR__ . '/config/bootstrap.php';
@@ -16,6 +17,10 @@ $manifestVersion = preg_replace('/[^0-9A-Za-z.\-]/', '', (string)($manifest['ver
 $showroom = is_array($manifest['showroom'] ?? null) ? $manifest['showroom'] : [];
 $colorNames = is_array($showroom['colorNames'] ?? null) ? $showroom['colorNames'] : [];
 $debug = (($_GET['debug'] ?? '') === '1');
+$layout = (($_GET['layout'] ?? '') === 'wall') ? 'wall' : 'cupboards';
+$moduleFile = $layout === 'wall' ? 'assets/js/3d/showroom.js?v=3.0.0' : 'assets/js/3d/showroom-cupboards.js?v=3.0.0';
+// "Customise" links go through the launch switch helper; the module adds &color=
+$customizeTemplate = app_base_url() . welzee_customizer_href('__PRODUCT__');
 
 /** Poster image for a product: manifest "poster" if given, else products/<id>.png or <id>_*.png */
 function sr_poster(string $id, array $p): string
@@ -29,6 +34,27 @@ function sr_poster(string $id, array $p): string
     }
     $match = glob(__DIR__ . "/assets/images/products/{$id}_*.png") ?: [];
     return $match ? 'assets/images/products/' . basename($match[0]) : '';
+}
+
+/** "Custom T-Shirt" -> "T-Shirt" (cupboard plates) */
+function sr_short_name(string $name): string
+{
+    return ucfirst(preg_replace('/^custom\s+/i', '', $name));
+}
+
+// Featured cupboards (same rules as showroom-cupboards.js): max 6, no model = coming soon
+$featured = [];
+foreach ((array)($showroom['featured'] ?? []) as $fid) {
+    if (!is_string($fid) || !preg_match('/^[a-z0-9_-]{1,32}$/', $fid) || isset($featured[$fid])) continue;
+    $conf = is_array($products[$fid] ?? null) ? $products[$fid] : null;
+    $glb = is_array($conf) && is_string($conf['glb'] ?? null) ? $conf['glb'] : '';
+    $featured[$fid] = [
+        'id'     => $fid,
+        'name'   => sr_short_name(is_array($conf) && is_string($conf['name'] ?? null) ? $conf['name'] : $fid),
+        'locked' => !preg_match('#^assets/models/(?:[A-Za-z0-9_-]+/)?[A-Za-z0-9_-]+\.glb$#', $glb),
+        'poster' => is_array($conf) ? sr_poster($fid, $conf) : '',
+    ];
+    if (count($featured) >= 6) break;
 }
 
 // Sections for the static wall, validated (same data the 3D wall uses)
@@ -60,7 +86,7 @@ $pageDescription = 'Walk along the Welzee showroom wall: custom T-shirts, hoodie
 
 $extraHead = '
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="' . app_base_url() . 'assets/css/showroom.css?v=2.0.0">
+    <link rel="stylesheet" href="' . app_base_url() . 'assets/css/showroom.css?v=3.0.0">
     <script type="importmap">
     {
       "imports": {
@@ -74,12 +100,15 @@ include __DIR__ . '/includes/header.php';
 $imgIndex = 0;
 ?>
 
-<section class="sr-hero<?php echo $debug ? ' is-debug' : ''; ?>" id="showroom" aria-label="The Welzee Showroom"
-         data-module="<?php echo e($base_url . 'assets/js/3d/showroom.js?v=2.0.0'); ?>"
+<section class="sr-hero sr-layout-<?php echo $layout; ?><?php echo $debug ? ' is-debug' : ''; ?>" id="showroom" aria-label="The Welzee Showroom"
+         data-layout="<?php echo $layout; ?>"
+         data-module="<?php echo e($base_url . $moduleFile); ?>"
+         data-customize="<?php echo e($customizeTemplate); ?>"
          data-manifest="<?php echo e($base_url . 'assets/js/3d/models.manifest.json?v=' . $manifestVersion); ?>"
          data-base="<?php echo e($base_url); ?>"
          <?php if ($debug): ?>data-debug="1"<?php endif; ?>>
 
+<?php if ($layout === 'wall'): ?>
     <!-- Static wall: first paint, plain fallback, and a usable product list without 3D -->
     <div class="sr-poster" id="srPoster">
         <div class="sr-poster-track" aria-label="Products in the showroom">
@@ -110,8 +139,32 @@ $imgIndex = 0;
         </div>
     </div>
 
-    <!-- 3D wall mounts here (hidden until the first product is on screen) -->
+<?php else: ?>
+    <!-- Static cupboards: first paint, plain fallback, and a usable product list without 3D -->
+    <div class="sr-poster sr-cabs-poster" id="srPoster">
+        <ul class="sr-cabs" aria-label="Featured products">
+            <?php foreach ($featured as $f): ?>
+            <li class="sr-cab<?php echo $f['locked'] ? ' is-locked' : ''; ?>">
+                <?php if (!$f['locked']): ?><a class="sr-cab-inner" href="<?php echo e($base_url . welzee_customizer_href($f['id'])); ?>"><?php else: ?><div class="sr-cab-inner" aria-disabled="true"><?php endif; ?>
+                    <span class="sr-cab-glass">
+                        <?php if (!$f['locked'] && $f['poster'] !== ''): ?>
+                        <img src="<?php echo e($base_url . $f['poster']); ?>" alt="" width="500" height="500" decoding="async"
+                             <?php echo $imgIndex++ < 3 ? 'fetchpriority="high"' : 'loading="lazy"'; ?>>
+                        <?php elseif ($f['locked']): ?>
+                        <i class="fa-solid fa-lock sr-cab-lock" aria-hidden="true"></i>
+                        <?php endif; ?>
+                    </span>
+                    <span class="sr-cab-plate"><?php echo e($f['name']); ?><?php if ($f['locked']): ?><small>Coming soon</small><?php endif; ?></span>
+                <?php echo $f['locked'] ? '</div>' : '</a>'; ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
+
+    <!-- 3D scene mounts here (hidden until the first product is on screen) -->
     <div class="sr-mount" id="srMount"></div>
+<?php if ($layout === 'wall'): ?>
     <div class="sr-fade" aria-hidden="true"></div>
 
     <!-- Hero overlay: page content (placeholder copy, edit freely). Left column on wide
@@ -130,6 +183,11 @@ $imgIndex = 0;
             </div>
         </div>
     </div>
+<?php else: ?>
+    <!-- Small heading (page content, edit freely) and the link to every product -->
+    <h1 class="sr-heading" id="srHeading">Pick a piece</h1>
+    <a class="sr-seeall" href="<?php echo e($base_url . 'rack.php'); ?>">See all products <span aria-hidden="true">&rarr;</span></a>
+<?php endif; ?>
 
     <button type="button" class="sr-start" id="srStart" hidden>
         <i class="fa-solid fa-cube" aria-hidden="true"></i> <span id="srStartLabel">Explore in 3D</span>
@@ -150,6 +208,7 @@ $imgIndex = 0;
     var stage = document.getElementById('showroom');
     if (!stage) return;
     var mount = document.getElementById('srMount');
+    var isWall = stage.getAttribute('data-layout') === 'wall';
     var copy = document.getElementById('srCopy');
     var poster = document.getElementById('srPoster');
     var startBtn = document.getElementById('srStart');
@@ -159,19 +218,27 @@ $imgIndex = 0;
 
     // Overlay mode: text column on the left (wide stage) or a block on top (portrait, tablets, small windows)
     function setMode() {
-        var w = stage.clientWidth;
-        stage.classList.toggle('is-wide', w >= 900 && w / Math.max(1, stage.clientHeight) >= 1.2);
+        var w = stage.clientWidth, r = w / Math.max(1, stage.clientHeight);
+        stage.classList.toggle('is-wide', isWall && w >= 900 && r >= 1.2);
+        stage.classList.toggle('is-narrow', !isWall && r < 0.7);           // cupboards: 2 x 3 on phones
     }
     setMode();
     // Area covered by the overlay text, in px from the stage's top-left (the 3D framing avoids it)
     function insets() {
+        if (!copy) return { left: 0, top: 0 };
         var s = stage.getBoundingClientRect(), c = copy.getBoundingClientRect();
         if (stage.classList.contains('is-wide')) return { left: Math.max(0, c.right - s.left + 24), top: 0 };
         return { left: 0, top: Math.max(0, c.bottom - s.top + 4) };
     }
 
     var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var tour = !/[?&]tour=0(?:&|$)/.test(window.location.search);   // ?tour=0 switches the drift off
+    var tour = !/[?&]tour=0(?:&|$)/.test(window.location.search);   // ?tour=0 switches the drift off (wall)
+    // Customiser link through the launch switch: template from PHP + &color=
+    var tpl = stage.getAttribute('data-customize') || '';
+    function customizeUrl(id, hex) {
+        var u = tpl.replace('__PRODUCT__', encodeURIComponent(id));
+        return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'color=' + encodeURIComponent(hex);
+    }
     var conn = navigator.connection || {};
     var saveData = !!conn.saveData;
     var lowSpec = (navigator.deviceMemory && navigator.deviceMemory <= 4) ||
@@ -212,6 +279,7 @@ $imgIndex = 0;
                 tour: tour,
                 hint: false,                        // the page shows its own "drag to explore" cue
                 insets: insets,
+                customizeUrl: customizeUrl,
                 onProductsShown: function () {
                     shown = true;
                     slow.hidden = true;
