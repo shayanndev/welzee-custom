@@ -5,7 +5,10 @@
  * on the dark stage. Each cupboard has a frame, back panel, rail, two panelled glass
  * doors with brass handles, a warm interior light and a plinth; the featured product
  * hangs inside on its hanger (same hanger / cord / swing code as the wall and rack).
- * Hover (desktop): doors open a little, the product swings. Tap / click: doors open.
+ * Hover (desktop): doors open a little, the product swings. Click / tap: the camera
+ * zooms in, the doors swing fully open, the other cupboards fade back behind a dark
+ * veil, and the cupboard shows the product's variations (colours for now) as tinted
+ * copies on rails, up to CONFIG.variationLayout.perRow per row. Back button / Esc returns.
  * A featured product without a model shows a locked cupboard with a "Coming soon" plate.
  *
  * Same entry point as the wall (showroom.js): `mountShowroom(container, options)`,
@@ -19,7 +22,8 @@
  * colorNames, optional variations). Everything else: CUPBOARD_CONFIG below; the
  * manifest may override it with "showroom": { "cupboards": { ...same keys } }.
  *
- * Events on `container`: showroom:interact (first hover-free interaction).
+ * Events on `container`: showroom:interact (first hover-free interaction),
+ * showroom:zoom {id}, showroom:grid.
  */
 
 import * as THREE from 'three';
@@ -75,6 +79,22 @@ export const CUPBOARD_CONFIG = {
         hover: 0.38,                  // rad, hover peek
         open: 1.05,                   // rad, tap / click
         stiffness: 70, damping: 0.62  // spring (damping ratio < 1 = a little overshoot)
+    },
+    zoom: {
+        duration: 950,                // ms, camera in / out
+        forward: 0.9,                 // m the chosen cupboard moves toward the camera
+        veil: 0.78,                   // darkness over the other cupboards (0..1)
+        margin: 0.05,                 // space around the cupboard, fraction of its size
+        topPx: 56,                    // px kept for the back button
+        doors: 1.95                   // rad, doors fully open
+    },
+    variationLayout: {
+        perRow: 6,                    // copies per rail
+        perRowNarrow: 3,              // phones (2 x 3 grid): fewer, larger copies per rail
+        fillW: 0.86,                  // copy width / slot width (max)
+        cordFill: 0.62,               // caps / bags: copy height / row height
+        gap: 0.03,                    // m between a row's hems and the rail below
+        stagger: 45                   // ms between copies popping in
     },
     lighting: {
         background: '#0b0c0f',
@@ -198,6 +218,57 @@ export function fitProduct(cfg, info, interior) {
     return { s, centreBelow: cordLen + above, cordLen, w: w * s, h: h * s };
 }
 
+/**
+ * Variations inside the cupboard: rows of rails (the cupboard rail is row 0), up to
+ * perRow copies per row, a short last row centred. Same scale for every copy.
+ */
+export function layoutVariations(cfg, info, interior, n, narrow) {
+    const V = cfg.variationLayout, P = cfg.product, r = info.rack;
+    const [w, h] = r.frontSize;
+    const perRow = Math.max(1, Math.min(narrow ? V.perRowNarrow : V.perRow, n));
+    const rows = Math.max(1, Math.ceil(n / perRow));
+    const top = interior.railY, bottom = interior.y0 + 0.02;
+    const rh = (top - bottom) / rows;
+    const sw = interior.iw / perRow;
+    let s, centreBelow, cordLen = 0;
+    if (info.type === 'hanger') {
+        const A1 = r.hangerProfile[0][1];
+        s = Math.max(0.05, Math.min((rh - P.hookLength - V.gap) / A1, (V.fillW * sw) / w, P.maxScale));
+        centreBelow = P.hookLength + s * (A1 - h / 2);
+    } else {
+        s = Math.max(0.05, Math.min((V.cordFill * rh) / h, (V.fillW * sw) / w, P.maxCordScale));
+        const above = s * (r.attach[1] - r.centerY);
+        cordLen = Math.max(0.03, rh * 0.5 - above);          // copy centred in its row
+        centreBelow = cordLen + above;
+    }
+    const rails = [], slots = [];
+    for (let k = 0; k < rows; k++) rails.push(top - k * rh);
+    for (let i = 0; i < n; i++) {
+        const row = Math.floor(i / perRow), c = i % perRow;
+        const inRow = Math.min(perRow, n - row * perRow);
+        slots.push({ i, row, x: -(inRow * sw) / 2 + sw / 2 + c * sw, y: rails[row] });
+    }
+    return { perRow, rows, rh, sw, s, centreBelow, cordLen, w: w * s, h: h * s, rails, slots };
+}
+
+/**
+ * Close-up camera for one cupboard (moved `zoom.forward` toward the camera), centred
+ * in the stage minus `insets` (px: right = side panel, bottom = bottom sheet) and the
+ * back-button bar on top. Straight-on view (no pitch).
+ */
+export function computeZoomView(cfg, L, cell, view, insets = {}) {
+    const Z = cfg.zoom;
+    const Wpx = Math.max(1, view.width), Hpx = Math.max(1, view.height), aspect = Wpx / Hpx;
+    const right = clamp(num(insets.right, 0), 0, Wpx * 0.6), bottom = clamp(num(insets.bottom, 0), 0, Hpx * 0.6);
+    const freeW = (Wpx - right) / Wpx, freeH = (Hpx - bottom - Z.topPx) / Hpx;
+    const visH = Math.max((L.Ht * (1 + 2 * Z.margin)) / freeH, (L.W * (1 + 2 * Z.margin)) / (freeW * aspect));
+    const dist = visH / (2 * L.tanV), mpp = visH / Hpx;
+    const cx = cell.x, cy = cell.y + L.Ht / 2, frontZ = Z.forward + L.D;
+    const offX = -right / 2, offY = (Z.topPx - bottom) / 2;        // free-area centre, px from the screen centre (y down)
+    const tx = cx - offX * mpp, ty = cy + offY * mpp;
+    return { visH, dist, mpp, look: V3(tx, ty, frontZ), cam: V3(tx, ty, frontZ + dist) };
+}
+
 /* ============================ textures ============================== */
 
 const TAU = Math.PI * 2;
@@ -314,6 +385,16 @@ function injectStyles() {
 .srm-plate .srm-soon{display:block;font-size:9px;letter-spacing:.14em;opacity:.8}
 .srm-hud{position:absolute;top:8px;right:8px;font:11px/1.35 ui-monospace,Menlo,Consolas,monospace;color:#a7f3d0;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:6px;pointer-events:none;white-space:pre;z-index:9}
 @media (max-width:719px){.srm-plate{font-size:10px;padding:3px 9px;letter-spacing:.1em}}
+.srm-root.is-zoomed .srm-plates{opacity:0;pointer-events:none}
+.srm-root.is-zoomed .srm-plate{pointer-events:none}
+.srm-zoombar{position:absolute;left:12px;top:10px;right:12px;display:flex;align-items:center;gap:12px;pointer-events:none;opacity:0;transform:translateY(-6px);transition:opacity .35s,transform .35s;z-index:3}
+.srm-root.is-zoomed .srm-zoombar{opacity:1;transform:none}
+.srm-root.is-zoomed .srm-zoombar .srm-back{pointer-events:auto}
+.srm-back{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.2);background:rgba(17,19,23,.75);color:#f3f4f6;font:600 13px/1 inherit;padding:9px 14px;border-radius:999px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.srm-back:hover{background:rgba(34,197,94,.22);border-color:rgba(34,197,94,.6)}
+.srm-back:focus-visible{outline:2px solid #22c55e;outline-offset:2px}
+.srm-zoomtitle{margin:0;font:700 12px/1.3 inherit;letter-spacing:.14em;text-transform:uppercase;color:#e5e7eb;text-shadow:0 2px 8px rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srm-zoomtitle span{color:#9ca3af;font-weight:600;letter-spacing:.08em}
 `;
     document.head.appendChild(s);
 }
@@ -364,6 +445,14 @@ export async function mountShowroom(container, options = {}) {
     const platesEl = document.createElement('div');
     platesEl.className = 'srm-plates';
     root.appendChild(platesEl);
+    const zoombar = document.createElement('div');
+    zoombar.className = 'srm-zoombar';
+    zoombar.innerHTML = '<button type="button" class="srm-back"><span aria-hidden="true">&larr;</span> All pieces</button><p class="srm-zoomtitle" aria-live="polite"></p>';
+    root.appendChild(zoombar);
+    const backBtn = zoombar.querySelector('.srm-back');
+    const zoomTitle = zoombar.querySelector('.srm-zoomtitle');
+    backBtn.tabIndex = -1;
+    backBtn.addEventListener('click', () => zoomOut());
     let hud = null;
     if (debug) { hud = document.createElement('div'); hud.className = 'srm-hud'; root.appendChild(hud); }
     container.appendChild(root);
@@ -413,7 +502,10 @@ export async function mountShowroom(container, options = {}) {
     // ---------- cupboards ----------
     const N = featured.length;
     const nLocked = featured.filter((f) => f.locked).length;
-    const RAIL_CAP = N + 4;                                       // + extra variation rails later
+    const varLists = featured.map((f) => (f.locked ? [] : variationsFor(cfg, f.id)));
+    const minPerRow = Math.max(1, Math.min(cfg.variationLayout.perRow, cfg.variationLayout.perRowNarrow));
+    const maxRows = Math.max(1, ...varLists.map((v) => Math.ceil(v.length / minPerRow)));
+    const RAIL_CAP = N + maxRows;                                 // + extra rails for variation rows
     let geo = cupboardGeometry(cfg, 1);
     const bodyMesh = instanced(geo.body, woodMat, N);
     const doorMesh = instanced(geo.door, woodMat, N * 2);
@@ -424,6 +516,14 @@ export async function mountShowroom(container, options = {}) {
     const lockMesh = instanced(geo.lock, brassMat, Math.max(1, nLocked), nLocked);
     glassMesh.renderOrder = 2;
     glowMesh.renderOrder = 1;
+    // Veil: darkens everything behind the chosen cupboard (depth-tested, so the
+    // cupboard that moved forward stays bright; drawn after the other glass)
+    const veilMat = new THREE.MeshBasicMaterial({ color: LT.background, transparent: true, opacity: 0, depthWrite: false, fog: false });
+    const veil = new THREE.Mesh(new THREE.PlaneGeometry(80, 50), veilMat);
+    veil.renderOrder = 3;
+    veil.visible = false;
+    scene.add(veil);
+    disposables.push(veilMat, veil.geometry);
     const col = new THREE.Color();
     const cups = featured.map((f, i) => {
         const tint = col.set(CB.woodTints[i % CB.woodTints.length]).clone();
@@ -537,7 +637,18 @@ export async function mountShowroom(container, options = {}) {
         else { p.cIdx = pool.cord++; p.kIdx = g.rack.clip === 'hook' ? pool.hook2++ : pool[g.rack.clip]++; }
         return p;
     }
-    for (const g of groups) g.pieces.push(makePiece(g, variationsFor(cfg, g.id)[0].value));     // grid copy: first colour
+    for (const g of groups) {
+        g.vars = varLists[g.cup.i];
+        g.capacity = 1 + g.vars.length;
+        const gp = makePiece(g, g.vars[0].value, g.vars[0].label);              // grid copy: first colour, slot 0
+        gp.slot = 0;
+        g.pieces.push(gp);
+        g.vars.forEach((v, j) => {                                               // variation copies: slots 1..n, hidden
+            const p = makePiece(g, v.value, v.label);
+            p.slot = 1 + j; p.k = p.kTarget = 0; p.variation = v; p.delay = 0;
+            g.pieces.push(p);
+        });
+    }
     const hookM = pool.hook ? resizePool(hookMesh, pool.hook) : hookMesh;
     const loopM = pool.cord ? resizePool(loopMesh, pool.cord) : loopMesh;
     const cordM = pool.cord ? resizePool(cordMesh, pool.cord) : cordMesh;
@@ -550,7 +661,12 @@ export async function mountShowroom(container, options = {}) {
     // ---------- layout ----------
     let L = null, geoW = 1;
     let camPos = V3(), camLook = V3();
+    const gridCam = V3(), gridLook = V3();
     let interior = cupboardInterior(cfg, 1);
+    // zoom state: zoomT 0 (grid) .. 1 (close-up), zoomDir +1 in / -1 out / 0 still
+    let zoomCup = null, zoomView = null, zoomT = 0, zoomDir = 0;
+    const zoomInsets = { right: 0, bottom: 0 };                 // px covered by the quick view (phase C)
+    const viewSize = () => ({ width: Math.max(1, root.clientWidth), height: Math.max(1, root.clientHeight) });
     function layoutScene() {
         const w = Math.max(1, root.clientWidth), h = Math.max(1, root.clientHeight);
         renderer.setSize(w, h, false);
@@ -571,7 +687,7 @@ export async function mountShowroom(container, options = {}) {
             c.cell = cell;
             c.origin.set(cell.x, cell.y, c.fwd);
         }
-        for (const g of groups) fitGridPiece(g);
+        for (const g of groups) { fitGridPiece(g); layoutVariationPieces(g); }
         // spotlights: one per column, a pool on the wall above, contact glow on the floor
         const colsX = [...new Set(L.cells.map((c) => +c.x.toFixed(4)))].slice(0, SPOTS);
         const top = (L.rows - 1) * (L.Ht + CB.gapY) + L.Ht;
@@ -586,12 +702,12 @@ export async function mountShowroom(container, options = {}) {
             floorPools.setMatrixAt(i, m.compose(V3(sx, 0.003, L.D + 0.25), q, V3(L.W * 1.5, 0.8, 1)));
         });
         for (const mm of [beams, wallPools, floorPools]) { mm.count = colsX.length; mm.instanceMatrix.needsUpdate = true; mm.computeBoundingSphere(); }
-        scene.fog.near = L.dist + LT.fog[0];
-        scene.fog.far = L.dist + LT.fog[1];
-        camPos.set(0, L.camY, L.camZ);
-        camLook.set(0, L.lookY, L.lookZ);
-        applyCamera();
+        gridCam.set(0, L.camY, L.camZ);
+        gridLook.set(0, L.lookY, L.lookZ);
+        if (zoomCup) zoomView = computeZoomView(cfg, L, zoomCup.cell, { width: w, height: h }, zoomInsets);
+        poseCamera();
         for (const c of cups) writeCupboard(c);
+        writeExtraRails();
         for (const g of groups) for (const p of g.pieces) writePiece(p);
         flush(true);
         platesDirty = true;
@@ -601,6 +717,44 @@ export async function mountShowroom(container, options = {}) {
         camera.position.copy(camPos);
         camera.lookAt(camLook);
         camera.updateMatrixWorld();
+    }
+    /** Camera, forward offset, veil and fog for the current zoom progress. */
+    function poseCamera() {
+        const e = THREE.MathUtils.smootherstep(zoomT, 0, 1);
+        if (zoomView && e > 0) { camPos.lerpVectors(gridCam, zoomView.cam, e); camLook.lerpVectors(gridLook, zoomView.look, e); }
+        else { camPos.copy(gridCam); camLook.copy(gridLook); }
+        applyCamera();
+        if (zoomCup) { zoomCup.fwd = cfg.zoom.forward * e; zoomCup.origin.z = zoomCup.fwd; }
+        veil.visible = e > 0.001;
+        veilMat.opacity = cfg.zoom.veil * smooth(e, 0, 0.7);
+        veil.position.set(camLook.x, camLook.y, L.D + 0.25);
+        const dist = camPos.distanceTo(camLook);
+        scene.fog.near = dist + LT.fog[0];
+        scene.fog.far = dist + LT.fog[1] * (1 - 0.4 * e);
+    }
+    /** Variation copies of a product laid out on rails inside its cupboard. */
+    function layoutVariationPieces(g) {
+        const V = layoutVariations(cfg, g.info, interior, g.vars.length, L.narrow);
+        g.varLayout = V;
+        for (let j = 1; j < g.pieces.length; j++) {
+            const p = g.pieces[j], sl = V.slots[j - 1];
+            p.s = V.s; p.w = V.w; p.h = V.h; p.centreBelow = V.centreBelow; p.cordLen = V.cordLen;
+            p.local.set(sl.x, sl.y, interior.railZ);
+        }
+    }
+    /** Extra rails (variation rows 2..n) of the zoomed cupboard; they grow from the middle. */
+    function writeExtraRails() {
+        const V = zoomCup && zoomCup.group ? zoomCup.group.varLayout : null;
+        const k = smooth(zoomT, 0.2, 0.7);
+        for (let r = 0; r < RAIL_CAP - N; r++) {
+            if (V && r + 1 < V.rails.length && k > 0.001) {
+                const O = zoomCup.origin;
+                M.A.compose(_v.set(O.x, O.y + V.rails[r + 1], O.z + interior.railZ), _q.identity(), _s.set(k, 1, 1));
+                railMesh.setMatrixAt(N + r, M.A);
+            } else railMesh.setMatrixAt(N + r, ZERO);
+        }
+        railMesh.count = RAIL_CAP;
+        dirty.add(railMesh);
     }
     function fitGridPiece(g) {
         const p = g.pieces[0];
@@ -840,6 +994,7 @@ export async function mountShowroom(container, options = {}) {
     }
     function doorTarget(c) {
         if (c.f.locked) return 0;
+        if (zoomCup) return c === zoomCup && zoomDir >= 0 ? cfg.zoom.doors : 0;
         if (c === opened) return DR.open;
         if (c === hovered) return DR.hover;
         return 0;
@@ -854,6 +1009,7 @@ export async function mountShowroom(container, options = {}) {
         wake();
     }
     function setHover(c) {
+        if (zoomCup) c = null;                                 // no peeking while zoomed
         if (c === hovered) return;
         hovered = c;
         if (c && !c.f.locked && c.group) poke(c.group.pieces[0], 0.8);
@@ -867,9 +1023,86 @@ export async function mountShowroom(container, options = {}) {
     function activateCupboard(c) {
         firstInteraction();
         if (!c || c.f.locked) return;                          // coming soon: no action
-        opened = opened === c ? null : c;
+        if (c.group && c.group.ready) { zoomIn(c); return; }
+        opened = opened === c ? null : c;                      // model still loading: just open the doors
         if (c.group) poke(c.group.pieces[0], 1);
         refreshDoors();
+    }
+
+    // ---------- zoom: close-up of one cupboard with its variations ----------
+    let varHover = null, armed = null;
+    function zoomIn(c) {
+        if (zoomCup && zoomCup !== c) return;
+        if (zoomCup === c && zoomDir >= 0) return;
+        const g = c.group;
+        zoomCup = c; zoomDir = 1; opened = null; hovered = null;
+        layoutVariationPieces(g);
+        zoomView = computeZoomView(cfg, L, c.cell, viewSize(), zoomInsets);
+        setGroupCount(g, g.capacity);
+        showVariations(g, true);
+        root.classList.add('is-zoomed');
+        zoomTitle.innerHTML = `${escapeHtml(c.f.name)} <span>&middot; ${g.vars.length} colour${g.vars.length === 1 ? '' : 's'}</span>`;
+        backBtn.tabIndex = 0;
+        refreshDoors();
+        emit('zoom', { id: g.id });
+        later(() => { if (zoomCup === c && zoomDir >= 0) backBtn.focus({ preventScroll: true }); }, reduced ? 0 : cfg.zoom.duration * 0.6);
+        wake();
+    }
+    function zoomOut() {
+        if (!zoomCup || zoomDir < 0) return;
+        const c = zoomCup;
+        const hadFocus = root.contains(document.activeElement);
+        zoomDir = -1;
+        setVarHover(null);
+        if (armed) { armed.yaw.target = 0; armed = null; }
+        showVariations(c.group, false);
+        for (const g of groups) if (g !== c.group && g.ready) setGroupCount(g, 1);   // bring the others back
+        root.classList.remove('is-zoomed');
+        backBtn.tabIndex = -1;
+        refreshDoors();
+        emit('grid');
+        if (hadFocus) later(() => { if (!zoomCup) c.plate.focus({ preventScroll: true }); }, reduced ? 0 : cfg.zoom.duration);
+        wake();
+    }
+    /** Grid copy out / variations in (staggered pop), or the reverse. */
+    function showVariations(g, on) {
+        const D = reduced ? 0 : cfg.zoom.duration / 1000;
+        g.pieces.forEach((p, j) => {
+            if (j === 0) { p.kTarget = on ? 0 : 1; p.delay = on ? 0 : D * 0.35; return; }
+            p.kTarget = on ? 1 : 0;
+            p.delay = on ? (reduced ? 0 : D * 0.4 + (j - 1) * cfg.variationLayout.stagger / 1000) : 0;
+            p.popped = false;
+            if (!on) p.yaw.target = 0;
+        });
+    }
+    function pickVariation(cx, cy) {
+        if (!zoomCup || zoomDir < 0 || zoomT < 0.85) return null;
+        const ray = rayAt(cx, cy);
+        let best = null, bd = Infinity;
+        const ps = zoomCup.group.pieces;
+        for (let j = 1; j < ps.length; j++) {
+            const p = ps[j];
+            if (p.k < 0.6 || p.box.isEmpty()) continue;
+            const hit = ray.intersectBox(p.box, _v);
+            if (hit) { const d = hit.distanceTo(ray.origin); if (d < bd) { bd = d; best = p; } }
+        }
+        return best;
+    }
+    function setVarHover(p) {
+        if (p === varHover) return;
+        if (varHover && varHover !== armed) varHover.yaw.target = 0;
+        varHover = p;
+        root.classList.toggle('is-hovering', !!p);
+        if (p) { poke(p, 0.8); p.yaw.target = Math.PI; }       // swing and turn to the back
+        wake();
+    }
+    function tapVariation(p, type) {
+        if (type === 'mouse') { poke(p, 0.6); return; }
+        if (armed && armed !== p) armed.yaw.target = 0;        // touch: tap = swing + show the back
+        armed = p;
+        poke(p, 0.8);
+        p.yaw.target = p.yaw.target > 1 ? 0 : Math.PI;
+        wake();
     }
 
     let down = null;
@@ -879,20 +1112,32 @@ export async function mountShowroom(container, options = {}) {
     });
     canvas.addEventListener('pointermove', (e) => {
         if ((e.pointerType || 'mouse') !== 'mouse' || down) return;
-        setHover(pickCupboard(e.clientX, e.clientY));
+        if (zoomCup) setVarHover(pickVariation(e.clientX, e.clientY));
+        else setHover(pickCupboard(e.clientX, e.clientY));
     });
-    canvas.addEventListener('pointerleave', (e) => { if ((e.pointerType || 'mouse') === 'mouse') setHover(null); });
+    canvas.addEventListener('pointerleave', (e) => { if ((e.pointerType || 'mouse') === 'mouse') { setHover(null); setVarHover(null); } });
     canvas.addEventListener('pointercancel', () => { down = null; });
     canvas.addEventListener('pointerup', (e) => {
         if (!down || e.pointerId !== down.id) return;
         const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y) > TAP_SLOP * 2;
         down = null;
         if (moved) return;                                     // a scroll / swipe, not a tap
+        if (zoomCup) {
+            if (zoomDir < 0) return;
+            const p = pickVariation(e.clientX, e.clientY);
+            if (p) { tapVariation(p, e.pointerType || 'mouse'); return; }
+            if (!pickCupboard(e.clientX, e.clientY)) zoomOut();   // tap on the dimmed stage: back to the grid
+            return;
+        }
         const c = pickCupboard(e.clientX, e.clientY);
         if (c) activateCupboard(c);
         else if (opened) { opened = null; refreshDoors(); }
     });
-    const onDocKey = (e) => { if (e.key === 'Escape' && opened) { opened = null; refreshDoors(); } };
+    const onDocKey = (e) => {
+        if (e.key !== 'Escape') return;
+        if (zoomCup) zoomOut();
+        else if (opened) { opened = null; refreshDoors(); }
+    };
     document.addEventListener('keydown', onDocKey);
 
     // ---------- loop ----------
@@ -937,15 +1182,47 @@ export async function mountShowroom(container, options = {}) {
             active = true;
         }
 
-        // hanging pieces
+        // zoom in / out
+        let spheres = false;
+        if (zoomDir !== 0 && zoomCup) {
+            const c = zoomCup;
+            zoomT = clamp(zoomT + zoomDir * dt / (reduced ? 0.001 : cfg.zoom.duration / 1000), 0, 1);
+            if (zoomDir < 0 && zoomT <= 0) {                     // back on the grid
+                zoomDir = 0; zoomCup = null; zoomView = null;
+                c.fwd = 0; c.origin.z = 0;
+                setGroupCount(c.group, 1);
+                platesDirty = true;
+            } else if (zoomDir > 0 && zoomT >= 1) {              // arrived: hide the products behind the veil
+                zoomDir = 0;
+                for (const g of groups) if (g !== c.group && g.ready) setGroupCount(g, 0);
+            }
+            poseCamera();
+            writeCupboard(c);
+            writeExtraRails();
+            for (const p of c.group.pieces) writePiece(p);
+            spheres = true;
+            active = true;
+        }
+
+        // hanging pieces (swing, turn, pop in / out)
         for (const g of groups) {
             if (!g.ready) continue;
             for (const p of g.pieces) {
-                const moving = stepHanging(p, dt);
+                let moving = stepHanging(p, dt);
+                if (p.k !== p.kTarget) {
+                    if (p.delay > 0) p.delay -= dt;
+                    else {
+                        p.k += (p.kTarget - p.k) * (reduced ? 1 : 1 - Math.exp(-10 * dt));
+                        if (Math.abs(p.k - p.kTarget) < 0.003) p.k = p.kTarget;
+                        if (!p.popped && p.kTarget > 0 && p.k > 0.4) { p.popped = true; poke(p, 0.45); }
+                    }
+                    moving = true;
+                    spheres = true;
+                }
                 if (moving) { writePiece(p); active = true; }
             }
         }
-        flush(false);
+        flush(spheres);
         if (platesDirty) updatePlates();
 
         renderer.render(scene, camera);
@@ -955,7 +1232,7 @@ export async function mountShowroom(container, options = {}) {
             if (now - hudT > 500) {
                 fps = Math.round(frames * 1000 / (now - hudT || 1)); frames = 0; hudT = now;
                 const i = renderer.info.render;
-                hud.textContent = `draw calls ${i.calls}\ntriangles  ${i.triangles.toLocaleString()}\nfps        ${fps}\ngrid       ${L.cols} x ${L.rows}, cupboard ${L.W.toFixed(2)} m\nview       ${L.visW.toFixed(2)} x ${L.visH.toFixed(2)} m\nloaded     ${groups.filter((g) => g.ready).length}/${groups.length}`;
+                hud.textContent = `draw calls ${i.calls}\ntriangles  ${i.triangles.toLocaleString()}\nfps        ${fps}\ngrid       ${L.cols} x ${L.rows}, cupboard ${L.W.toFixed(2)} m\nview       ${L.visW.toFixed(2)} x ${L.visH.toFixed(2)} m\nloaded     ${groups.filter((g) => g.ready).length}/${groups.length}\nmode       ${zoomCup ? 'zoom ' + zoomCup.f.id + ' ' + zoomT.toFixed(2) : 'grid'}`;
             }
             active = true;
         }
@@ -978,6 +1255,8 @@ export async function mountShowroom(container, options = {}) {
 
     return {
         relayout: () => { if (!destroyed) { layoutScene(); wake(); } },
+        zoomTo(id) { const c = cups.find((q) => q.f.id === id); if (c) activateCupboard(c); },
+        back: () => zoomOut(),
         destroy() {
             if (destroyed) return;
             destroyed = true;

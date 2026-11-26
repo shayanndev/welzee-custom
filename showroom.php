@@ -260,6 +260,8 @@ $imgIndex = 0;
     mount.addEventListener('showroom:interact', function () { stage.classList.add('is-interacted'); });
     mount.addEventListener('showroom:pull', function () { stage.classList.add('is-pulled'); });
     mount.addEventListener('showroom:release', function () { stage.classList.remove('is-pulled'); });
+    mount.addEventListener('showroom:zoom', function () { stage.classList.add('is-zoomed'); });     // cupboards: close-up
+    mount.addEventListener('showroom:grid', function () { stage.classList.remove('is-zoomed'); });
     poster.addEventListener('scroll', function () { stage.classList.add('is-interacted'); }, { passive: true });
 
     function start() {
@@ -295,7 +297,7 @@ $imgIndex = 0;
             starting = false;
             console.warn('[Welzee Showroom] 3D unavailable, keeping the static wall.', err);
             mount.innerHTML = '';
-            stage.classList.remove('is-loading', 'is-3d-live', 'is-pulled');
+            stage.classList.remove('is-loading', 'is-3d-live', 'is-pulled', 'is-zoomed');
             if (!isClassic()) slow.hidden = false;
         });
     }
@@ -304,7 +306,7 @@ $imgIndex = 0;
     function goClassic() {
         setPref('classic');
         stage.classList.add('is-classic');
-        stage.classList.remove('is-3d-live', 'is-loading', 'is-pulled');
+        stage.classList.remove('is-3d-live', 'is-loading', 'is-pulled', 'is-zoomed');
         clearTimeout(timer);
         slow.hidden = true;
         if (controller) { controller.destroy(); controller = null; }
